@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Elementos de la solución/">
+    <File Path=".dockerignore" />
+    <File Path="docker-compose.yml" />
+    <File Path="Dockerfile" />
+  </Folder>
+  <Project Path="StayWize.API/StayWize.API.csproj" />
+  <Project Path="StayWize.Application/StayWize.Application.csproj" />
+  <Project Path="StayWize.Domain/StayWize.Domain.csproj" />
+  <Project Path="StayWize.Infrastructure/StayWize.Infrastructure.csproj" />
+  <Project Path="StayWize.Services/StayWize.Services.csproj" />
+</Solution>
