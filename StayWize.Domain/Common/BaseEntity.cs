@@ -2,7 +2,7 @@
 
 namespace StayWize.Domain.Common;
 
-public abstract class BaseEntity
+public abstract class BaseEntity : ISoftDeletable
 {
     public Guid Id { get; private set; } = Uuid.NewDatabaseFriendly(Database.SqlServer);
 
