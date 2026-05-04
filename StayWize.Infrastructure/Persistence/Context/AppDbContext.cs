@@ -27,6 +27,13 @@ public class AppDbContext : DbContext
                 modelBuilder.Entity(entityType.ClrType)
                     .HasQueryFilter(BuildSoftDeleteFilter(entityType.ClrType));
             }
+
+            if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
+            {
+                modelBuilder.Entity(entityType.ClrType)
+                    .Property(nameof(BaseEntity.RowVersion))
+                    .IsRowVersion();
+            }
         }
     }
 

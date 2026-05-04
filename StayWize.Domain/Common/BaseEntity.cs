@@ -17,10 +17,10 @@ public abstract class BaseEntity : ISoftDeletable
     public DateTime? DeletedAt { get; private set; }
     public string? DeletedBy { get; private set; }
 
-    public void SetCreatedBy(string username)
-    {
-        CreatedBy = username;
-    }
+    // Optimistic concurrency
+    public byte[] RowVersion { get; private set; } = Array.Empty<byte>();
+
+    public void SetCreatedBy(string username) => CreatedBy = username;
 
     public void MarkAsUpdated(string username)
     {
