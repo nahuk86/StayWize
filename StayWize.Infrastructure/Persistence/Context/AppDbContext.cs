@@ -18,25 +18,25 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        // Aplica todas las configuraciones del assembly automáticamente
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        // Filtro global de soft delete para todas las entidades que hereden BaseEntity
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
-            if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
+            if (typeof(ISoftDeletable).IsAssignableFrom(entityType.ClrType))
             {
                 modelBuilder.Entity(entityType.ClrType)
-                    .HasQueryFilter(
-                        System.Linq.Expressions.Expression.Lambda(
-                            System.Linq.Expressions.Expression.Equal(
-                                System.Linq.Expressions.Expression.Property(
-                                    System.Linq.Expressions.Expression.Parameter(entityType.ClrType, "e"),
-                                    nameof(BaseEntity.IsDeleted)),
-                                System.Linq.Expressions.Expression.Constant(false)),
-                            System.Linq.Expressions.Expression.Parameter(entityType.ClrType, "e")));
+                    .HasQueryFilter(BuildSoftDeleteFilter(entityType.ClrType));
             }
         }
+    }
+
+    private static System.Linq.Expressions.LambdaExpression BuildSoftDeleteFilter(Type type)
+    {
+        var param = System.Linq.Expressions.Expression.Parameter(type, "e");
+        var prop = System.Linq.Expressions.Expression.Property(param, nameof(ISoftDeletable.IsDeleted));
+        var condition = System.Linq.Expressions.Expression.Equal(
+            prop,
+            System.Linq.Expressions.Expression.Constant(false));
+        return System.Linq.Expressions.Expression.Lambda(condition, param);
     }
 }
