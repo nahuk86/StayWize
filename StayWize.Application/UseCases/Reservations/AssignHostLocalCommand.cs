@@ -2,6 +2,7 @@
 using StayWize.Application.Common.Interfaces;
 using StayWize.Application.Common.Services;
 using StayWize.Domain.Exceptions;
+using StayWize.Services.ExceptionHandling;
 
 namespace StayWize.Application.UseCases.Reservations;
 
@@ -33,13 +34,13 @@ public class AssignHostLocalCommandHandler
 
         var hostLocal = await _hostLocalRepository.GetByIdAsync(request.HostLocalId);
         if (hostLocal is null)
-            throw new InvalidOperationException($"El host local {request.HostLocalId} no existe.");
+            throw new NotFoundException("Host local", request.HostLocalId);
 
         // Adquirir lock sobre el host local (Opción C)
         using var hostLock = await _concurrencyService.AcquireHostLocalLockAsync(request.HostLocalId);
 
         if (!hostLocal.IsAvailable)
-            throw new InvalidOperationException("El host local no está disponible.");
+            throw new ConflictException("El host local no está disponible.");
 
         reservation.AssignHostLocal(request.HostLocalId);
         reservation.MarkAsUpdated("system");
