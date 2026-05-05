@@ -5,6 +5,7 @@ using StayWize.Application.DTOs;
 using StayWize.Domain.Entities;
 using StayWize.Domain.Exceptions;
 using StayWize.Services.ExceptionHandling;
+using StayWize.Services.Logging;
 
 namespace StayWize.Application.UseCases.Reservations;
 
@@ -17,17 +18,20 @@ public class CreateReservationCommandHandler
     private readonly IPropertyRepository _propertyRepository;
     private readonly IClientRepository _clientRepository;
     private readonly ReservationConcurrencyService _concurrencyService;
+    private readonly ILogService _logService;
 
     public CreateReservationCommandHandler(
         IReservationRepository reservationRepository,
         IPropertyRepository propertyRepository,
         IClientRepository clientRepository,
-        ReservationConcurrencyService concurrencyService)
+        ReservationConcurrencyService concurrencyService,
+        ILogService logService)
     {
         _reservationRepository = reservationRepository;
         _propertyRepository = propertyRepository;
         _clientRepository = clientRepository;
         _concurrencyService = concurrencyService;
+        _logService = logService;
     }
 
     public async Task<ReservationDto> Handle(
@@ -36,24 +40,31 @@ public class CreateReservationCommandHandler
     {
         var dto = request.Dto;
 
-        // Validar existencia de propiedad y cliente
         var propertyExists = await _propertyRepository.ExistsAsync(dto.PropertyId);
         if (!propertyExists)
+        {
+            _logService.LogWarning("Intento de reserva con propiedad inexistente. PropertyId: {PropertyId}", dto.PropertyId);
             throw new NotFoundException("Propiedad", dto.PropertyId);
+        }
 
         var clientExists = await _clientRepository.ExistsAsync(dto.ClientId);
         if (!clientExists)
+        {
+            _logService.LogWarning("Intento de reserva con cliente inexistente. ClientId: {ClientId}", dto.ClientId);
             throw new NotFoundException("Cliente", dto.ClientId);
+        }
 
-        // Adquirir lock sobre la propiedad (Opción C)
         using var propertyLock = await _concurrencyService.AcquirePropertyLockAsync(dto.PropertyId);
 
-        // Validar solapamiento de fechas (dentro del lock)
         var hasOverlap = await _reservationRepository.HasOverlapAsync(
             dto.PropertyId, dto.CheckIn, dto.CheckOut);
 
         if (hasOverlap)
+        {
+            _logService.LogWarning("Conflicto de fechas. PropertyId: {PropertyId} CheckIn: {CheckIn} CheckOut: {CheckOut}",
+                dto.PropertyId, dto.CheckIn, dto.CheckOut);
             throw new ConflictException("La propiedad ya tiene una reserva activa en el rango de fechas indicado.");
+        }
 
         var reservation = Reservation.Create(
             dto.PropertyId,
@@ -63,10 +74,11 @@ public class CreateReservationCommandHandler
             dto.GuestCount,
             dto.Notes);
 
-        // Opción A: EF Core detectará conflictos de RowVersion al guardar
         try
         {
             await _reservationRepository.AddAsync(reservation);
+            _logService.LogInformation("Reserva creada. ReservationId: {ReservationId} PropertyId: {PropertyId} ClientId: {ClientId}",
+                reservation.Id, reservation.PropertyId, reservation.ClientId);
         }
         catch (Exception ex) when (ex.GetType().Name == "DbUpdateConcurrencyException")
         {
