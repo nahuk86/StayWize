@@ -1,23 +1,22 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using StayWize.Domain.Exceptions;
-using System.Data;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using StayWize.Domain.Exceptions;
+using StayWize.Services.Logging;
 
 namespace StayWize.Services.ExceptionHandling;
 
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly ILogService _logService;
 
     public ExceptionHandlingMiddleware(
         RequestDelegate next,
-        ILogger<ExceptionHandlingMiddleware> logger)
+        ILogService logService)
     {
         _next = next;
-        _logger = logger;
+        _logService = logService;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -28,7 +27,7 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Excepción no controlada: {Message}", ex.Message);
+            _logService.LogError("Excepción no controlada: {Message}", ex, ex.Message);
             await HandleExceptionAsync(context, ex);
         }
     }

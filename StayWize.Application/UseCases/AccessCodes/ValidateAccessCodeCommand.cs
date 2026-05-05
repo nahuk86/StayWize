@@ -2,6 +2,7 @@
 using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
 using StayWize.Domain.Entities;
+using StayWize.Services.Logging;
 
 namespace StayWize.Application.UseCases.AccessCodes;
 
@@ -13,13 +14,16 @@ public class ValidateAccessCodeCommandHandler
 {
     private readonly IAccessCodeRepository _accessCodeRepository;
     private readonly IAccessLogRepository _accessLogRepository;
+    private readonly ILogService _logService;
 
     public ValidateAccessCodeCommandHandler(
         IAccessCodeRepository accessCodeRepository,
-        IAccessLogRepository accessLogRepository)
+        IAccessLogRepository accessLogRepository,
+        ILogService logService)
     {
         _accessCodeRepository = accessCodeRepository;
         _accessLogRepository = accessLogRepository;
+        _logService = logService;
     }
 
     public async Task<ValidateAccessCodeResultDto> Handle(
@@ -29,9 +33,9 @@ public class ValidateAccessCodeCommandHandler
         var dto = request.Dto;
         var accessCode = await _accessCodeRepository.GetByCodeAsync(dto.Code);
 
-        // Código no encontrado
         if (accessCode is null)
         {
+            _logService.LogWarning("Intento de validación con código inexistente. Code: {Code}", dto.Code);
             return new ValidateAccessCodeResultDto
             {
                 Success = false,
@@ -39,9 +43,10 @@ public class ValidateAccessCodeCommandHandler
             };
         }
 
-        // Código inválido (vencido, revocado, fuera de rango)
         if (!accessCode.IsValid())
         {
+            _logService.LogWarning("Código de acceso inválido. Code: {Code} Estado: {Status}", dto.Code, accessCode.Status);
+
             var log = AccessLog.CreateFailure(
                 accessCode.Id,
                 accessCode.ReservationId,
@@ -59,13 +64,15 @@ public class ValidateAccessCodeCommandHandler
             };
         }
 
-        // Código válido — registrar evento exitoso
         var successLog = AccessLog.CreateSuccess(
             accessCode.Id,
             accessCode.ReservationId,
             dto.EventType);
 
         await _accessLogRepository.AddAsync(successLog);
+
+        _logService.LogInformation("Acceso validado exitosamente. Code: {Code} ReservationId: {ReservationId} EventType: {EventType}",
+            dto.Code, accessCode.ReservationId, dto.EventType);
 
         return new ValidateAccessCodeResultDto
         {
