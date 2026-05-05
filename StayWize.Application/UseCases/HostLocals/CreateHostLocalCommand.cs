@@ -2,6 +2,7 @@
 using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
 using StayWize.Domain.Entities;
+using StayWize.Services.ExceptionHandling;
 
 namespace StayWize.Application.UseCases.HostLocals;
 
@@ -25,7 +26,7 @@ public class CreateHostLocalCommandHandler
 
         var existing = await _repository.GetAllAsync();
         if (existing.Any(h => h.Email == dto.Email))
-            throw new InvalidOperationException($"Ya existe un host local con el email {dto.Email}.");
+            throw new ConflictException($"Ya existe un host local con el email {dto.Email}.");
 
         var hostLocal = HostLocal.Create(
             dto.FirstName,

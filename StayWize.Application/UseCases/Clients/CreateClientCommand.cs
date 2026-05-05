@@ -2,6 +2,7 @@
 using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
 using StayWize.Domain.Entities;
+using StayWize.Services.ExceptionHandling;
 
 namespace StayWize.Application.UseCases.Clients;
 
@@ -25,11 +26,11 @@ public class CreateClientCommandHandler
 
         var existingEmail = await _repository.GetByEmailAsync(dto.Email);
         if (existingEmail is not null)
-            throw new InvalidOperationException($"Ya existe un cliente con el email {dto.Email}.");
+            throw new ConflictException($"Ya existe un cliente con el email {dto.Email}.");
 
         var existingDocument = await _repository.GetByDocumentNumberAsync(dto.DocumentNumber);
         if (existingDocument is not null)
-            throw new InvalidOperationException($"Ya existe un cliente con el documento {dto.DocumentNumber}.");
+            throw new ConflictException($"Ya existe un cliente con el documento {dto.DocumentNumber}.");
 
         var client = Client.Create(
             dto.FirstName,

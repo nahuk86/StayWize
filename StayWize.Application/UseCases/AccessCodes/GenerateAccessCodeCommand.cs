@@ -3,6 +3,7 @@ using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
 using StayWize.Domain.Entities;
 using StayWize.Domain.Enums;
+using StayWize.Services.ExceptionHandling;
 
 namespace StayWize.Application.UseCases.AccessCodes;
 
@@ -31,11 +32,11 @@ public class GenerateAccessCodeCommandHandler
         var reservation = await _reservationRepository.GetByIdAsync(dto.ReservationId);
 
         if (reservation is null)
-            throw new InvalidOperationException($"La reserva {dto.ReservationId} no existe.");
+            throw new NotFoundException("Reserva", dto.ReservationId);
 
         if (reservation.Status != ReservationStatus.Confirmed)
-            throw new InvalidOperationException(
-                "Solo se pueden generar códigos para reservas confirmadas.");
+            throw new ConflictException("Solo se pueden generar códigos para reservas confirmadas.");
+
 
         var accessCode = AccessCode.Create(
             dto.ReservationId,

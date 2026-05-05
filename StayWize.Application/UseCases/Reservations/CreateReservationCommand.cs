@@ -4,6 +4,7 @@ using StayWize.Application.Common.Services;
 using StayWize.Application.DTOs;
 using StayWize.Domain.Entities;
 using StayWize.Domain.Exceptions;
+using StayWize.Services.ExceptionHandling;
 
 namespace StayWize.Application.UseCases.Reservations;
 
@@ -38,11 +39,11 @@ public class CreateReservationCommandHandler
         // Validar existencia de propiedad y cliente
         var propertyExists = await _propertyRepository.ExistsAsync(dto.PropertyId);
         if (!propertyExists)
-            throw new InvalidOperationException($"La propiedad {dto.PropertyId} no existe.");
+            throw new NotFoundException("Propiedad", dto.PropertyId);
 
         var clientExists = await _clientRepository.ExistsAsync(dto.ClientId);
         if (!clientExists)
-            throw new InvalidOperationException($"El cliente {dto.ClientId} no existe.");
+            throw new NotFoundException("Cliente", dto.ClientId);
 
         // Adquirir lock sobre la propiedad (Opción C)
         using var propertyLock = await _concurrencyService.AcquirePropertyLockAsync(dto.PropertyId);
@@ -52,8 +53,7 @@ public class CreateReservationCommandHandler
             dto.PropertyId, dto.CheckIn, dto.CheckOut);
 
         if (hasOverlap)
-            throw new InvalidOperationException(
-                "La propiedad ya tiene una reserva activa en el rango de fechas indicado.");
+            throw new ConflictException("La propiedad ya tiene una reserva activa en el rango de fechas indicado.");
 
         var reservation = Reservation.Create(
             dto.PropertyId,
