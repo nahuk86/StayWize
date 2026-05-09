@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StayWize.Application.Common.Interfaces;
 using StayWize.Infrastructure.Persistence.Context;
 using StayWize.Infrastructure.Persistence.Repositories;
+using StayWize.Services.Authentication;
 
 namespace StayWize.Infrastructure;
 
@@ -16,6 +18,17 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection")));
+
+        services.AddIdentity<AppUser, IdentityRole>(options =>
+        {
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 8;
+        })
+        .AddEntityFrameworkStores<AppDbContext>()
+        .AddDefaultTokenProviders();
 
         services.AddScoped<IPropertyRepository, PropertyRepository>();
         services.AddScoped<IClientRepository, ClientRepository>();

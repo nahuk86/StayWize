@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StayWize.Application.DTOs;
 using StayWize.Application.UseCases.Properties;
@@ -6,6 +7,7 @@ using StayWize.Application.UseCases.Properties;
 namespace StayWize.API.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin,Owner")]
 [Route("api/[controller]")]
 public class PropertiesController : ControllerBase
 {
