@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StayWize.Application.DTOs;
 using StayWize.Application.UseCases.HostLocals;
+using StayWize.Services.ExceptionHandling;
 
 namespace StayWize.API.Controllers;
 
@@ -29,7 +30,7 @@ public class HostLocalsController : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetHostLocalByIdQuery(id));
-        if (result is null) return NotFound();
+        if (result is null) throw new NotFoundException("Cliente", id);
         return Ok(result);
     }
 

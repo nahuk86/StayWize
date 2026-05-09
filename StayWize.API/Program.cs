@@ -57,6 +57,15 @@ try
 
     var app = builder.Build();
 
+
+    var supportedCultures = new[] { "es", "en" };
+    var localizationOptions = new RequestLocalizationOptions()
+        .SetDefaultCulture("es")
+        .AddSupportedCultures(supportedCultures)
+        .AddSupportedUICultures(supportedCultures);
+
+    app.UseRequestLocalization(localizationOptions);
+
     app.UseExceptionHandling();
 
     if (app.Environment.IsDevelopment())

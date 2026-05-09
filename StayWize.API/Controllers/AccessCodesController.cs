@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StayWize.Application.DTOs;
 using StayWize.Application.UseCases.AccessCodes;
+using StayWize.Services.ExceptionHandling;
 
 namespace StayWize.API.Controllers;
 
@@ -65,7 +66,7 @@ public class AccessCodesController : ControllerBase
     public async Task<IActionResult> Revoke(Guid id)
     {
         var result = await _mediator.Send(new RevokeAccessCodeCommand(id));
-        if (!result) return NotFound();
+        if (!result) throw new NotFoundException("Código de acceso", id);
         return NoContent();
     }
 }

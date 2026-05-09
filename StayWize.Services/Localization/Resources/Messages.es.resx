@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="NotFound" xml:space="preserve">
+    <value>{0} no fue encontrado.</value>
+  </data>
+  <data name="Conflict" xml:space="preserve">
+    <value>Ya existe un registro con esos datos.</value>
+  </data>
+  <data name="ValidationError" xml:space="preserve">
+    <value>Se produjeron errores de validación.</value>
+  </data>
+  <data name="ConcurrencyError" xml:space="preserve">
+    <value>Conflicto de concurrencia. Intentá nuevamente.</value>
+  </data>
+  <data name="InternalError" xml:space="preserve">
+    <value>Error interno del servidor.</value>
+  </data>
+  <data name="InvalidCredentials" xml:space="preserve">
+    <value>Credenciales inválidas.</value>
+  </data>
+  <data name="ReservationOverlap" xml:space="preserve">
+    <value>La propiedad ya tiene una reserva en ese rango de fechas.</value>
+  </data>
+  <data name="AccessCodeInvalid" xml:space="preserve">
+    <value>Código de acceso inválido.</value>
+  </data>
+</root>

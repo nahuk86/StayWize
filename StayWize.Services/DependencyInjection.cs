@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using StayWize.Services.Authentication;
+using StayWize.Services.Localization;
 using StayWize.Services.Logging;
 using System.Text;
 
@@ -15,7 +16,14 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // Logging
         services.AddSingleton<ILogService, LogService>();
+
+        // Localization
+        services.AddHttpContextAccessor();
+        services.AddScoped<ILocalizationService, LocalizationService>();
+
+        // Auth
         services.AddScoped<IAuthService, AuthService>();
 
         var jwtSettings = configuration.GetSection("JwtSettings");
