@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StayWize.Application.DTOs;
 using StayWize.Application.UseCases.Properties;
+using StayWize.Services.ExceptionHandling;
 
 namespace StayWize.API.Controllers;
 
@@ -26,10 +27,11 @@ public class PropertiesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [Authorize(Roles = "Admin,Owner")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetPropertyByIdQuery(id));
-        if (result is null) return NotFound();
+        if (result is null) throw new NotFoundException("Propiedad", id);
         return Ok(result);
     }
 
@@ -44,7 +46,7 @@ public class PropertiesController : ControllerBase
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdatePropertyDto dto)
     {
         var result = await _mediator.Send(new UpdatePropertyCommand(id, dto));
-        if (!result) return NotFound();
+        if (!result) throw new NotFoundException("Propiedad", id);
         return NoContent();
     }
 

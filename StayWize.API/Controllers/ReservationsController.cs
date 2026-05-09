@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StayWize.Application.DTOs;
 using StayWize.Application.UseCases.Reservations;
+using StayWize.Services.ExceptionHandling;
 
 namespace StayWize.API.Controllers;
 
@@ -29,7 +30,7 @@ public class ReservationsController : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new GetReservationByIdQuery(id));
-        if (result is null) return NotFound();
+        if (result is null) throw new NotFoundException("Reserva", id);
         return Ok(result);
     }
 
