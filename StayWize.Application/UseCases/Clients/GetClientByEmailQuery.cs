@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
+using StayWize.Services.Encryption;
+
 
 namespace StayWize.Application.UseCases.Clients;
 
@@ -10,10 +12,13 @@ public class GetClientByEmailQueryHandler
     : IRequestHandler<GetClientByEmailQuery, ClientDto?>
 {
     private readonly IClientRepository _repository;
+    private readonly IEncryptionService _encryptionService;
 
-    public GetClientByEmailQueryHandler(IClientRepository repository)
+
+    public GetClientByEmailQueryHandler(IClientRepository repository, IEncryptionService encryptionService)
     {
         _repository = repository;
+        _encryptionService = encryptionService;
     }
 
     public async Task<ClientDto?> Handle(
@@ -31,7 +36,7 @@ public class GetClientByEmailQueryHandler
             LastName = client.LastName,
             Email = client.Email,
             Phone = client.Phone,
-            DocumentNumber = client.DocumentNumber,
+            DocumentNumber = _encryptionService.Decrypt(client.DocumentNumber),
             CreatedAt = client.CreatedAt,
             UpdatedAt = client.UpdatedAt
         };

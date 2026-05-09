@@ -2,6 +2,7 @@
 using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
 using StayWize.Domain.Entities;
+using StayWize.Services.Encryption;
 using StayWize.Services.ExceptionHandling;
 
 namespace StayWize.Application.UseCases.Clients;
@@ -12,10 +13,14 @@ public class CreateClientCommandHandler
     : IRequestHandler<CreateClientCommand, ClientDto>
 {
     private readonly IClientRepository _repository;
+    private readonly IEncryptionService _encryptionService;
 
-    public CreateClientCommandHandler(IClientRepository repository)
+    public CreateClientCommandHandler(
+        IClientRepository repository,
+        IEncryptionService encryptionService)
     {
         _repository = repository;
+        _encryptionService = encryptionService;
     }
 
     public async Task<ClientDto> Handle(
@@ -32,12 +37,15 @@ public class CreateClientCommandHandler
         if (existingDocument is not null)
             throw new ConflictException($"Ya existe un cliente con el documento {dto.DocumentNumber}.");
 
+        // Encriptamos el documento antes de persistir
+        var encryptedDocument = _encryptionService.Encrypt(dto.DocumentNumber);
+
         var client = Client.Create(
             dto.FirstName,
             dto.LastName,
             dto.Email,
             dto.Phone,
-            dto.DocumentNumber);
+            encryptedDocument);
 
         await _repository.AddAsync(client);
 
@@ -48,7 +56,8 @@ public class CreateClientCommandHandler
             LastName = client.LastName,
             Email = client.Email,
             Phone = client.Phone,
-            DocumentNumber = client.DocumentNumber,
+            // Desencriptamos al devolver
+            DocumentNumber = _encryptionService.Decrypt(client.DocumentNumber),
             CreatedAt = client.CreatedAt,
             UpdatedAt = client.UpdatedAt
         };

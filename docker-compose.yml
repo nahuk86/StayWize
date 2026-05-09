@@ -14,6 +14,7 @@ services:
       - JwtSettings__Issuer=StayWize
       - JwtSettings__Audience=StayWizeUsers
       - JwtSettings__ExpirationHours=24
+      - EncryptionSettings__SecretKey=staywize-encryption-key-32-bytes!
     depends_on:
       staywize-db:
         condition: service_healthy
