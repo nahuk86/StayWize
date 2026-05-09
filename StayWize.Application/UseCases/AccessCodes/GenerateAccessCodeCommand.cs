@@ -3,6 +3,7 @@ using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
 using StayWize.Domain.Entities;
 using StayWize.Domain.Enums;
+using StayWize.Services.Encryption;
 using StayWize.Services.ExceptionHandling;
 
 namespace StayWize.Application.UseCases.AccessCodes;
@@ -14,13 +15,16 @@ public class GenerateAccessCodeCommandHandler
 {
     private readonly IAccessCodeRepository _accessCodeRepository;
     private readonly IReservationRepository _reservationRepository;
+    private readonly IEncryptionService _encryptionService;
 
     public GenerateAccessCodeCommandHandler(
         IAccessCodeRepository accessCodeRepository,
-        IReservationRepository reservationRepository)
+        IReservationRepository reservationRepository,
+        IEncryptionService encryptionService)
     {
         _accessCodeRepository = accessCodeRepository;
         _reservationRepository = reservationRepository;
+        _encryptionService = encryptionService;
     }
 
     public async Task<AccessCodeDto> Handle(
@@ -37,12 +41,15 @@ public class GenerateAccessCodeCommandHandler
         if (reservation.Status != ReservationStatus.Confirmed)
             throw new ConflictException("Solo se pueden generar códigos para reservas confirmadas.");
 
-
         var accessCode = AccessCode.Create(
             dto.ReservationId,
             dto.ValidFrom,
             dto.ValidTo,
             dto.Type);
+
+        // Encriptamos el código antes de persistir
+        var encryptedCode = _encryptionService.Encrypt(accessCode.Code);
+        accessCode.SetEncryptedCode(encryptedCode);
 
         await _accessCodeRepository.AddAsync(accessCode);
 
@@ -50,7 +57,8 @@ public class GenerateAccessCodeCommandHandler
         {
             Id = accessCode.Id,
             ReservationId = accessCode.ReservationId,
-            Code = accessCode.Code,
+            // Devolvemos el código en claro al cliente
+            Code = _encryptionService.Decrypt(accessCode.Code),
             ValidFrom = accessCode.ValidFrom,
             ValidTo = accessCode.ValidTo,
             Status = accessCode.Status,

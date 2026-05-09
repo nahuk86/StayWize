@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using StayWize.Services.Authentication;
+using StayWize.Services.Encryption;
 using StayWize.Services.Localization;
 using StayWize.Services.Logging;
 using System.Text;
@@ -22,6 +22,9 @@ public static class DependencyInjection
         // Localization
         services.AddHttpContextAccessor();
         services.AddScoped<ILocalizationService, LocalizationService>();
+
+        // Encryption
+        services.AddSingleton<IEncryptionService, EncryptionService>();
 
         // Auth
         services.AddScoped<IAuthService, AuthService>();

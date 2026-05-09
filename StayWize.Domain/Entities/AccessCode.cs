@@ -42,6 +42,11 @@ public class AccessCode : BaseEntity
     public void Revoke() => Status = AccessCodeStatus.Revoked;
     public void MarkAsExpired() => Status = AccessCodeStatus.Expired;
 
+    public void SetEncryptedCode(string encryptedCode)
+    {
+        Code = encryptedCode;
+    }
+
     private static string GenerateCode() =>
         new Random().Next(100000, 999999).ToString();
 }
