@@ -5,6 +5,7 @@ using StayWize.Domain.Entities;
 using StayWize.Domain.Enums;
 using StayWize.Services.Encryption;
 using StayWize.Services.ExceptionHandling;
+using StayWize.Services.Notifications;
 
 namespace StayWize.Application.UseCases.AccessCodes;
 
@@ -15,16 +16,22 @@ public class GenerateAccessCodeCommandHandler
 {
     private readonly IAccessCodeRepository _accessCodeRepository;
     private readonly IReservationRepository _reservationRepository;
+    private readonly IClientRepository _clientRepository;
     private readonly IEncryptionService _encryptionService;
+    private readonly IEmailService _emailService;
 
     public GenerateAccessCodeCommandHandler(
         IAccessCodeRepository accessCodeRepository,
         IReservationRepository reservationRepository,
-        IEncryptionService encryptionService)
+        IClientRepository clientRepository,
+        IEncryptionService encryptionService,
+        IEmailService emailService)
     {
         _accessCodeRepository = accessCodeRepository;
         _reservationRepository = reservationRepository;
+        _clientRepository = clientRepository;
         _encryptionService = encryptionService;
+        _emailService = emailService;
     }
 
     public async Task<AccessCodeDto> Handle(
@@ -34,7 +41,6 @@ public class GenerateAccessCodeCommandHandler
         var dto = request.Dto;
 
         var reservation = await _reservationRepository.GetByIdAsync(dto.ReservationId);
-
         if (reservation is null)
             throw new NotFoundException("Reserva", dto.ReservationId);
 
@@ -47,18 +53,30 @@ public class GenerateAccessCodeCommandHandler
             dto.ValidTo,
             dto.Type);
 
-        // Encriptamos el código antes de persistir
-        var encryptedCode = _encryptionService.Encrypt(accessCode.Code);
+        // Guardamos el código en claro antes de encriptar
+        var plainCode = accessCode.Code;
+        var encryptedCode = _encryptionService.Encrypt(plainCode);
         accessCode.SetEncryptedCode(encryptedCode);
 
         await _accessCodeRepository.AddAsync(accessCode);
+
+        // Notificación fire and forget
+        var client = await _clientRepository.GetByIdAsync(reservation.ClientId);
+        if (client is not null)
+        {
+            _ = _emailService.SendAccessCodeGeneratedAsync(
+                client.Email,
+                $"{client.FirstName} {client.LastName}",
+                plainCode,
+                accessCode.ValidFrom,
+                accessCode.ValidTo);
+        }
 
         return new AccessCodeDto
         {
             Id = accessCode.Id,
             ReservationId = accessCode.ReservationId,
-            // Devolvemos el código en claro al cliente
-            Code = _encryptionService.Decrypt(accessCode.Code),
+            Code = plainCode,
             ValidFrom = accessCode.ValidFrom,
             ValidTo = accessCode.ValidTo,
             Status = accessCode.Status,

@@ -9,12 +9,18 @@ services:
       - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=staywize-db,1433;Database=StayWizeDb;User Id=sa;Password=StayWize_Pass123!;TrustServerCertificate=True;
-      - JwtSettings__SecretKey=staywize-secret-key-2026-must-be-long-enough
-      - JwtSettings__Issuer=StayWize
-      - JwtSettings__Audience=StayWizeUsers
-      - JwtSettings__ExpirationHours=24
-      - EncryptionSettings__SecretKey=staywize-encryption-key-32-bytes!
+      - ConnectionStrings__DefaultConnection=Server=staywize-db,1433;Database=StayWizeDb;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True;
+      - JwtSettings__SecretKey=${JWT_SECRET}
+      - JwtSettings__Issuer=${JWT_ISSUER}
+      - JwtSettings__Audience=${JWT_AUDIENCE}
+      - JwtSettings__ExpirationHours=${JWT_EXPIRATION_HOURS}
+      - EncryptionSettings__SecretKey=${ENCRYPTION_KEY}
+      - SmtpSettings__Host=${SMTP_HOST}
+      - SmtpSettings__Port=${SMTP_PORT}
+      - SmtpSettings__Username=${SMTP_USERNAME}
+      - SmtpSettings__Password=${SMTP_PASSWORD}
+      - SmtpSettings__FromName=${SMTP_FROM_NAME}
+      - SmtpSettings__FromEmail=${SMTP_FROM_EMAIL}
     depends_on:
       staywize-db:
         condition: service_healthy
@@ -28,12 +34,12 @@ services:
       - "1434:1433"
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=StayWize_Pass123!
+      - SA_PASSWORD=${DB_PASSWORD}
       - MSSQL_PID=Express
     volumes:
       - staywize-db-data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P StayWize_Pass123! -Q 'SELECT 1' -No"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P ${DB_PASSWORD} -Q 'SELECT 1' -No"]
       interval: 10s
       timeout: 5s
       retries: 10

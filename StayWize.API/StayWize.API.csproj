@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- Eliminá o comentá esta línea: -->
     <!-- <InvariantGlobalization>true</InvariantGlobalization> -->
+    <UserSecretsId>999b0acd-009a-4ef4-857c-7ac797090dd7</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

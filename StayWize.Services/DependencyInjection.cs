@@ -6,6 +6,7 @@ using StayWize.Services.Authentication;
 using StayWize.Services.Encryption;
 using StayWize.Services.Localization;
 using StayWize.Services.Logging;
+using StayWize.Services.Notifications;
 using System.Text;
 
 namespace StayWize.Services;
@@ -28,6 +29,9 @@ public static class DependencyInjection
 
         // Auth
         services.AddScoped<IAuthService, AuthService>();
+
+        // Notifications
+        services.AddScoped<IEmailService, EmailService>();
 
         var jwtSettings = configuration.GetSection("JwtSettings");
         var secretKey = jwtSettings["SecretKey"]!;
