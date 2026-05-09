@@ -13,7 +13,8 @@ public class AccessCodeConfiguration : IEntityTypeConfiguration<AccessCode>
 
         builder.Property(a => a.Code)
             .IsRequired()
-            .HasMaxLength(10);
+            .HasMaxLength(500); // era 10, aumentamos para soportar el valor encriptado
+
 
         builder.Property(a => a.ValidFrom).IsRequired();
         builder.Property(a => a.ValidTo).IsRequired();

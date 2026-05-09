@@ -1,0 +1,14 @@
+{
+  "firstName": "Nahuel",
+  "lastName": "Krauss",
+  "email": "nahuel@staywize.com",
+  "password": "Admin1234",
+  "role": "Admin"
+}
+
+{
+  "email": "nahuel@staywize.com",
+  "password": "Admin1234"
+}
+
+https://mailtrap.io/sandboxes/4613735/messages/5477722049
