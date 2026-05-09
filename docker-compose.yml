@@ -10,6 +10,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=staywize-db,1433;Database=StayWizeDb;User Id=sa;Password=StayWize_Pass123!;TrustServerCertificate=True;
+      - JwtSettings__SecretKey=staywize-secret-key-2026-must-be-long-enough
+      - JwtSettings__Issuer=StayWize
+      - JwtSettings__Audience=StayWizeUsers
+      - JwtSettings__ExpirationHours=24
     depends_on:
       staywize-db:
         condition: service_healthy

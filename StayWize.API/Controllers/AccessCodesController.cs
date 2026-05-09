@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StayWize.Application.DTOs;
 using StayWize.Application.UseCases.AccessCodes;
@@ -7,6 +8,7 @@ namespace StayWize.API.Controllers;
 
 [ApiController]
 [Route("api/access-codes")]
+[Authorize] // requiere autenticación en todos los endpoints
 public class AccessCodesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -17,6 +19,7 @@ public class AccessCodesController : ControllerBase
     }
 
     [HttpGet("reservation/{reservationId:guid}")]
+    [Authorize(Roles = "Admin,Owner,HostLocal")]
     public async Task<IActionResult> GetByReservation(Guid reservationId)
     {
         var result = await _mediator.Send(new GetAccessCodesByReservationQuery(reservationId));
@@ -24,6 +27,7 @@ public class AccessCodesController : ControllerBase
     }
 
     [HttpGet("{id:guid}/logs")]
+    [Authorize(Roles = "Admin,Owner,HostLocal")]
     public async Task<IActionResult> GetLogsByCode(Guid id)
     {
         var result = await _mediator.Send(new GetAccessLogsByCodeQuery(id));
@@ -31,6 +35,7 @@ public class AccessCodesController : ControllerBase
     }
 
     [HttpGet("reservation/{reservationId:guid}/logs")]
+    [Authorize(Roles = "Admin,Owner,HostLocal")]
     public async Task<IActionResult> GetLogsByReservation(Guid reservationId)
     {
         var result = await _mediator.Send(new GetAccessLogsByReservationQuery(reservationId));
@@ -38,6 +43,7 @@ public class AccessCodesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Owner")]
     public async Task<IActionResult> Generate([FromBody] GenerateAccessCodeDto dto)
     {
         var result = await _mediator.Send(new GenerateAccessCodeCommand(dto));
@@ -46,6 +52,7 @@ public class AccessCodesController : ControllerBase
     }
 
     [HttpPost("validate")]
+    [Authorize(Roles = "Admin,Owner,HostLocal,Guest")]
     public async Task<IActionResult> Validate([FromBody] ValidateAccessCodeDto dto)
     {
         var result = await _mediator.Send(new ValidateAccessCodeCommand(dto));
@@ -54,6 +61,7 @@ public class AccessCodesController : ControllerBase
     }
 
     [HttpPatch("{id:guid}/revoke")]
+    [Authorize(Roles = "Admin,Owner")]
     public async Task<IActionResult> Revoke(Guid id)
     {
         var result = await _mediator.Send(new RevokeAccessCodeCommand(id));

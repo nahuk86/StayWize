@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StayWize.Application.DTOs;
 using StayWize.Application.UseCases.Reservations;
@@ -6,6 +7,7 @@ using StayWize.Application.UseCases.Reservations;
 namespace StayWize.API.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin,Owner,HostLocal")]
 [Route("api/[controller]")]
 public class ReservationsController : ControllerBase
 {
