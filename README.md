@@ -80,8 +80,8 @@ dotnet ef database update --project StayWize.Infrastructure --startup-project St
 |-----------|--------|
 | v0.1.0 — Infraestructura base | ✅ Completo |
 | v0.2.0 — Módulos de negocio | ✅ Completo |
-| v0.3.0 — Servicios base (auth, logs, i18n) | 🔄 En progreso |
-| v0.4.0 — Gestión de ingresos y egresos | ⏳ Pendiente |
+| v0.3.0 — Servicios base (auth, logs, i18n) | ✅ Completo |
+| v0.4.0 — Gestión de ingresos y egresos | 🔄 En progreso |
 | v0.5.0 — Frontend | ⏳ Pendiente |
 
 ---
