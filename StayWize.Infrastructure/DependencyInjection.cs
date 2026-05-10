@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StayWize.Application.Common.Interfaces;
+using StayWize.Infrastructure.Jobs;
 using StayWize.Infrastructure.Persistence.Context;
 using StayWize.Infrastructure.Persistence.Repositories;
 using StayWize.Services.Authentication;
@@ -36,6 +37,9 @@ public static class DependencyInjection
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IAccessCodeRepository, AccessCodeRepository>();
         services.AddScoped<IAccessLogRepository, AccessLogRepository>();
+
+        // Background job
+        services.AddHostedService<AccessCodeExpirationJob>();
 
         return services;
     }
