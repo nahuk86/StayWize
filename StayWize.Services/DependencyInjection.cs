@@ -33,16 +33,19 @@ public static class DependencyInjection
         // Notifications
         services.AddScoped<IEmailService, EmailService>();
 
-        var jwtSettings = configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"]!;
-
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
-        .AddJwtBearer(options =>
+        .AddJwtBearer();
+
+        services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+        .Configure<IConfiguration>((options, config) =>
         {
+            var jwtSettings = config.GetSection("JwtSettings");
+            var secretKey = jwtSettings["SecretKey"]!;
+
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
