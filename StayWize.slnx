@@ -9,4 +9,5 @@
   <Project Path="StayWize.Domain/StayWize.Domain.csproj" />
   <Project Path="StayWize.Infrastructure/StayWize.Infrastructure.csproj" />
   <Project Path="StayWize.Services/StayWize.Services.csproj" />
+  <Project Path="StayWize.UnitTests/StayWize.UnitTests.csproj" />
 </Solution>
