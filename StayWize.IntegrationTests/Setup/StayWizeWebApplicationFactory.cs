@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -37,7 +38,6 @@ public class StayWizeWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            // Reemplazar SQL Server por InMemory con nombre único por instancia
             var descriptor = services.SingleOrDefault(
                 d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
             if (descriptor != null)
@@ -46,11 +46,26 @@ public class StayWizeWebApplicationFactory : WebApplicationFactory<Program>
             services.AddDbContext<AppDbContext>(options =>
                 options.UseInMemoryDatabase(_dbName));
 
-            // Remover el background job
             var jobDescriptor = services.SingleOrDefault(
                 d => d.ImplementationType == typeof(AccessCodeExpirationJob));
             if (jobDescriptor != null)
                 services.Remove(jobDescriptor);
+
+            // Sobreescribir la clave JWT con la clave de test
+            services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = "StayWize",
+                    ValidAudience = "StayWizeUsers",
+                    IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                        System.Text.Encoding.UTF8.GetBytes("staywize-test-secret-key-must-be-32-chars!!"))
+                };
+            });
         });
 
         builder.UseEnvironment("Testing");
