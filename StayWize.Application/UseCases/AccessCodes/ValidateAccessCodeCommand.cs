@@ -2,7 +2,6 @@
 using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
 using StayWize.Domain.Entities;
-using StayWize.Services.Encryption;
 using StayWize.Services.Logging;
 
 namespace StayWize.Application.UseCases.AccessCodes;
@@ -16,19 +15,15 @@ public class ValidateAccessCodeCommandHandler
     private readonly IAccessCodeRepository _accessCodeRepository;
     private readonly IAccessLogRepository _accessLogRepository;
     private readonly ILogService _logService;
-    private readonly IEncryptionService _encryptionService;
-
 
     public ValidateAccessCodeCommandHandler(
         IAccessCodeRepository accessCodeRepository,
         IAccessLogRepository accessLogRepository,
-        ILogService logService, IEncryptionService encryptionService)
+        ILogService logService)
     {
         _accessCodeRepository = accessCodeRepository;
         _accessLogRepository = accessLogRepository;
         _logService = logService;
-        _encryptionService = encryptionService;
-
     }
 
     public async Task<ValidateAccessCodeResultDto> Handle(
@@ -37,9 +32,7 @@ public class ValidateAccessCodeCommandHandler
     {
         var dto = request.Dto;
 
-        // Encriptamos el código recibido para buscarlo en la DB
-        var encryptedCode = _encryptionService.Encrypt(dto.Code);
-        var accessCode = await _accessCodeRepository.GetByCodeAsync(encryptedCode);
+        var accessCode = await _accessCodeRepository.GetByPlainCodeAsync(dto.Code);
 
         if (accessCode is null)
         {

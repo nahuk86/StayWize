@@ -3,12 +3,28 @@ using StayWize.Application.Common.Interfaces;
 using StayWize.Domain.Entities;
 using StayWize.Domain.Enums;
 using StayWize.Infrastructure.Persistence.Context;
+using StayWize.Services.Encryption;
 
 namespace StayWize.Infrastructure.Persistence.Repositories;
 
 public class AccessCodeRepository : BaseRepository<AccessCode>, IAccessCodeRepository
 {
-    public AccessCodeRepository(AppDbContext context) : base(context) { }
+    private readonly IEncryptionService _encryptionService;
+
+    public AccessCodeRepository(AppDbContext context, IEncryptionService encryptionService) : base(context)
+    {
+        _encryptionService = encryptionService;
+    }
+
+    public async Task<AccessCode?> GetByPlainCodeAsync(string plainCode)
+    {
+        var all = await _dbSet.Include(a => a.Reservation).ToListAsync();
+        return all.FirstOrDefault(a =>
+        {
+            try { return _encryptionService.Decrypt(a.Code) == plainCode; }
+            catch { return false; }
+        });
+    }
 
     public async Task<AccessCode?> GetByCodeAsync(string code)
     {
@@ -33,8 +49,7 @@ public class AccessCodeRepository : BaseRepository<AccessCode>, IAccessCodeRepos
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<AccessCode>> GetByReservationIdsAsync(
-    IEnumerable<Guid> reservationIds)
+    public async Task<IEnumerable<AccessCode>> GetByReservationIdsAsync(IEnumerable<Guid> reservationIds)
     {
         return await _dbSet
             .Where(a => reservationIds.Contains(a.ReservationId))
