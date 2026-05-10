@@ -19,6 +19,24 @@ public class ReservationRepository : BaseRepository<Reservation>, IReservationRe
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Reservation>> GetByPropertyIdAndDateRangeAsync(
+    Guid propertyId, DateTime dateFrom, DateTime dateTo)
+    {
+        return await _dbSet
+            .Where(r => r.PropertyId == propertyId &&
+                        r.CheckIn >= dateFrom &&
+                        r.CheckOut <= dateTo)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Reservation>> GetByDateRangeAsync(
+        DateTime dateFrom, DateTime dateTo)
+    {
+        return await _dbSet
+            .Where(r => r.CheckIn >= dateFrom && r.CheckOut <= dateTo)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<Reservation>> GetByClientIdAsync(Guid clientId)
     {
         return await _dbSet

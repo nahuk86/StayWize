@@ -6,4 +6,5 @@ public interface IAccessLogRepository : IRepository<AccessLog>
 {
     Task<IEnumerable<AccessLog>> GetByReservationIdAsync(Guid reservationId);
     Task<IEnumerable<AccessLog>> GetByAccessCodeIdAsync(Guid accessCodeId);
+    Task<IEnumerable<AccessLog>> GetByReservationIdsAndDateRangeAsync(IEnumerable<Guid> reservationIds, DateTime dateFrom, DateTime dateTo);
 }

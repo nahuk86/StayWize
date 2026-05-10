@@ -32,4 +32,12 @@ public class AccessCodeRepository : BaseRepository<AccessCode>, IAccessCodeRepos
             .Include(a => a.Reservation)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<AccessCode>> GetByReservationIdsAsync(
+    IEnumerable<Guid> reservationIds)
+    {
+        return await _dbSet
+            .Where(a => reservationIds.Contains(a.ReservationId))
+            .ToListAsync();
+    }
 }
