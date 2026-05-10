@@ -1,85 +1,91 @@
-﻿using MediatR;
+﻿using FluentAssertions;
+using Moq;
 using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
+using StayWize.Application.UseCases.AccessCodes;
 using StayWize.Domain.Entities;
+using StayWize.Domain.Enums;
 using StayWize.Services.Logging;
 
-namespace StayWize.Application.UseCases.AccessCodes;
+namespace StayWize.UnitTests.Application.AccessCodes;
 
-public record ValidateAccessCodeCommand(ValidateAccessCodeDto Dto)
-    : IRequest<ValidateAccessCodeResultDto>;
-
-public class ValidateAccessCodeCommandHandler
-    : IRequestHandler<ValidateAccessCodeCommand, ValidateAccessCodeResultDto>
+public class ValidateAccessCodeCommandHandlerTests
 {
-    private readonly IAccessCodeRepository _accessCodeRepository;
-    private readonly IAccessLogRepository _accessLogRepository;
-    private readonly ILogService _logService;
+    private readonly Mock<IAccessCodeRepository> _accessCodeRepoMock = new();
+    private readonly Mock<IAccessLogRepository> _accessLogRepoMock = new();
+    private readonly Mock<ILogService> _logServiceMock = new();
 
-    public ValidateAccessCodeCommandHandler(
-        IAccessCodeRepository accessCodeRepository,
-        IAccessLogRepository accessLogRepository,
-        ILogService logService)
+    private ValidateAccessCodeCommandHandler CreateHandler() => new(
+        _accessCodeRepoMock.Object,
+        _accessLogRepoMock.Object,
+        _logServiceMock.Object);
+
+    [Fact]
+    public async Task Handle_ValidCode_ShouldReturnSuccess()
     {
-        _accessCodeRepository = accessCodeRepository;
-        _accessLogRepository = accessLogRepository;
-        _logService = logService;
+        var accessCode = AccessCode.Create(
+            Guid.NewGuid(),
+            DateTime.UtcNow.AddHours(-1),
+            DateTime.UtcNow.AddHours(1),
+            AccessCodeType.CheckIn);
+
+        _accessCodeRepoMock.Setup(r => r.GetByPlainCodeAsync(It.IsAny<string>()))
+            .ReturnsAsync(accessCode);
+
+        var dto = new ValidateAccessCodeDto
+        {
+            Code = accessCode.Code,
+            EventType = AccessEventType.Entry
+        };
+
+        var result = await CreateHandler().Handle(
+            new ValidateAccessCodeCommand(dto), CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        result.ReservationId.Should().Be(accessCode.ReservationId);
     }
 
-    public async Task<ValidateAccessCodeResultDto> Handle(
-        ValidateAccessCodeCommand request,
-        CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_CodeNotFound_ShouldReturnFailure()
     {
-        var dto = request.Dto;
+        _accessCodeRepoMock.Setup(r => r.GetByPlainCodeAsync(It.IsAny<string>()))
+            .ReturnsAsync((AccessCode?)null);
 
-        var accessCode = await _accessCodeRepository.GetByPlainCodeAsync(dto.Code);
-
-        if (accessCode is null)
+        var dto = new ValidateAccessCodeDto
         {
-            _logService.LogWarning("Intento de validación con código inexistente. Code: {Code}", dto.Code);
-            return new ValidateAccessCodeResultDto
-            {
-                Success = false,
-                FailureReason = "Código de acceso no encontrado."
-            };
-        }
-
-        if (!accessCode.IsValid())
-        {
-            _logService.LogWarning("Código de acceso inválido. Code: {Code} Estado: {Status}", dto.Code, accessCode.Status);
-
-            var log = AccessLog.CreateFailure(
-                accessCode.Id,
-                accessCode.ReservationId,
-                dto.EventType,
-                $"Código inválido. Estado: {accessCode.Status}.");
-
-            await _accessLogRepository.AddAsync(log);
-
-            return new ValidateAccessCodeResultDto
-            {
-                Success = false,
-                FailureReason = $"Código inválido. Estado: {accessCode.Status}.",
-                ReservationId = accessCode.ReservationId,
-                EventTime = log.EventTime
-            };
-        }
-
-        var successLog = AccessLog.CreateSuccess(
-            accessCode.Id,
-            accessCode.ReservationId,
-            dto.EventType);
-
-        await _accessLogRepository.AddAsync(successLog);
-
-        _logService.LogInformation("Acceso validado exitosamente. Code: {Code} ReservationId: {ReservationId} EventType: {EventType}",
-            dto.Code, accessCode.ReservationId, dto.EventType);
-
-        return new ValidateAccessCodeResultDto
-        {
-            Success = true,
-            ReservationId = accessCode.ReservationId,
-            EventTime = successLog.EventTime
+            Code = "999999",
+            EventType = AccessEventType.Entry
         };
+
+        var result = await CreateHandler().Handle(
+            new ValidateAccessCodeCommand(dto), CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.FailureReason.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public async Task Handle_RevokedCode_ShouldReturnFailure()
+    {
+        var accessCode = AccessCode.Create(
+            Guid.NewGuid(),
+            DateTime.UtcNow.AddHours(-1),
+            DateTime.UtcNow.AddHours(1),
+            AccessCodeType.CheckIn);
+        accessCode.Revoke();
+
+        _accessCodeRepoMock.Setup(r => r.GetByPlainCodeAsync(It.IsAny<string>()))
+            .ReturnsAsync(accessCode);
+
+        var dto = new ValidateAccessCodeDto
+        {
+            Code = accessCode.Code,
+            EventType = AccessEventType.Entry
+        };
+
+        var result = await CreateHandler().Handle(
+            new ValidateAccessCodeCommand(dto), CancellationToken.None);
+
+        result.Success.Should().BeFalse();
     }
 }
