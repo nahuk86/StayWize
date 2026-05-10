@@ -21,6 +21,8 @@ services:
       - SmtpSettings__Password=${SMTP_PASSWORD}
       - SmtpSettings__FromName=${SMTP_FROM_NAME}
       - SmtpSettings__FromEmail=${SMTP_FROM_EMAIL}
+      - JobSettings__AccessCodeExpirationIntervalMinutes=${JOB_EXPIRATION_INTERVAL_MINUTES}
+
     depends_on:
       staywize-db:
         condition: service_healthy
