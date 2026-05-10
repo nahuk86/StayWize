@@ -24,4 +24,15 @@ public class AccessLogRepository : BaseRepository<AccessLog>, IAccessLogReposito
             .OrderByDescending(l => l.EventTime)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<AccessLog>> GetByReservationIdsAndDateRangeAsync(
+    IEnumerable<Guid> reservationIds, DateTime dateFrom, DateTime dateTo)
+    {
+        return await _dbSet
+            .Where(l => reservationIds.Contains(l.ReservationId) &&
+                        l.EventTime >= dateFrom &&
+                        l.EventTime <= dateTo)
+            .OrderByDescending(l => l.EventTime)
+            .ToListAsync();
+    }
 }
