@@ -44,7 +44,9 @@ public static class DependencyInjection
         .Configure<IConfiguration>((options, config) =>
         {
             var jwtSettings = config.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"]!;
+            var secretKey = jwtSettings["SecretKey"];
+            if (string.IsNullOrWhiteSpace(secretKey))
+                throw new InvalidOperationException("JwtSettings:SecretKey configuration is required.");
 
             options.TokenValidationParameters = new TokenValidationParameters
             {
