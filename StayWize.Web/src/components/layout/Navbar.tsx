@@ -1,5 +1,7 @@
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -13,6 +15,11 @@ export function Navbar() {
   return (
     <nav className="bg-blue-700 text-white px-6 py-4 flex items-center justify-between shadow-md">
       <span className="text-xl font-bold tracking-wide">StayWize</span>
+      <div className="flex gap-6 text-sm">
+        <Link to="/dashboard" className="hover:text-blue-200">Dashboard</Link>
+        <Link to="/properties" className="hover:text-blue-200">Propiedades</Link>
+        </div>
+      
       <div className="flex items-center gap-4">
         <span className="text-sm text-blue-100">{user?.email}</span>
         <span className="text-xs bg-blue-500 px-2 py-1 rounded-full">{user?.role}</span>

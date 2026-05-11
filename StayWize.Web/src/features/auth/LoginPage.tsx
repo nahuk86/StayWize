@@ -30,8 +30,8 @@ export function LoginPage() {
     try {
       setError(null);
       const response = await apiClient.post('/auth/login', data);
-      const { token, email, role } = response.data;
-      login(token, { email, role });
+      const { token } = response.data;
+      login(token);
       navigate('/dashboard');
     } catch (err: any) {
       setError('Credenciales inválidas. Verificá tu email y contraseña.');
