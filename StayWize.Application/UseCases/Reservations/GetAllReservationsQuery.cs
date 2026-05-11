@@ -26,7 +26,11 @@ public class GetAllReservationsQueryHandler
         {
             Id = r.Id,
             PropertyId = r.PropertyId,
+            PropertyName = r.Property?.Name ?? string.Empty,
             ClientId = r.ClientId,
+            ClientName = r.Client != null
+                ? $"{r.Client.FirstName} {r.Client.LastName}"
+                : string.Empty,
             HostLocalId = r.HostLocalId,
             CheckIn = r.CheckIn,
             CheckOut = r.CheckOut,

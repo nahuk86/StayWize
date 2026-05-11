@@ -5,6 +5,7 @@ import { MainLayout } from './components/layout/MainLayout';
 import { DashboardPage } from './features/dashboard/DashboardPage';
 import { PropertiesPage } from './features/properties/PropertiesPage';
 import { ClientsPage } from './features/clients/ClientsPage';
+import { ReservationsPage } from './features/reservations/ReservationsPage';
 
 function App() {
   return (
@@ -40,6 +41,16 @@ function App() {
           </ProtectedRoute>
         }
       />
+        <Route
+          path="/reservations"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ReservationsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
