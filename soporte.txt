@@ -12,3 +12,11 @@
 }
 
 https://mailtrap.io/sandboxes/4613735/messages/5477722049
+
+
+
+Comandos utiles
+
+dotnet build
+docker-compose up --build
+http://localhost:5000/swagger
