@@ -22,6 +22,16 @@ try
 
     builder.Host.UseSerilog();
 
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("FrontendDev", policy =>
+        {
+            policy.WithOrigins("http://localhost:5173")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+    });
+
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
@@ -75,6 +85,7 @@ try
     }
 
     app.UseHttpsRedirection();
+    app.UseCors("FrontendDev");
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();

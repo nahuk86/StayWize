@@ -17,6 +17,15 @@ https://mailtrap.io/sandboxes/4613735/messages/5477722049
 
 Comandos utiles
 
+## levantar back 
 dotnet build
 docker-compose up --build
 http://localhost:5000/swagger
+
+### levantar front 
+npm run dev
+
+## ejecutar front 
+npx tsc --noEmit
+
+http://localhost:5173/login
