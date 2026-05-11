@@ -21,11 +21,10 @@ public class BaseRepository<T> : IRepository<T> where T : BaseEntity
         return await _dbSet.FirstOrDefaultAsync(e => e.Id == id);
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync()
+    public virtual async Task<IEnumerable<T>> GetAllAsync()
     {
         return await _dbSet.ToListAsync();
     }
-
     public async Task AddAsync(T entity)
     {
         await _dbSet.AddAsync(entity);

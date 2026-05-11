@@ -6,7 +6,9 @@ public class ReservationDto
 {
     public Guid Id { get; set; }
     public Guid PropertyId { get; set; }
+    public string PropertyName { get; set; } = string.Empty;
     public Guid ClientId { get; set; }
+    public string ClientName { get; set; } = string.Empty;
     public Guid? HostLocalId { get; set; }
     public DateTime CheckIn { get; set; }
     public DateTime CheckOut { get; set; }

@@ -29,6 +29,14 @@ public class ReservationRepository : BaseRepository<Reservation>, IReservationRe
             .ToListAsync();
     }
 
+    public override async Task<IEnumerable<Reservation>> GetAllAsync()
+    {
+        return await _dbSet
+            .Include(r => r.Property)
+            .Include(r => r.Client)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<Reservation>> GetByDateRangeAsync(
         DateTime dateFrom, DateTime dateTo)
     {
