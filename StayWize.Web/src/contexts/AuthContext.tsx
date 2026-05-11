@@ -1,6 +1,14 @@
 import { createContext, useState, type ReactNode } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
 interface User {
+  email: string;
+  role: string;
+  userId: string;
+}
+
+interface JwtPayload {
+  sub: string;
   email: string;
   role: string;
 }
@@ -8,7 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (token: string, user: User) => void;
+  login: (token: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -24,7 +32,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return stored ? JSON.parse(stored) : null;
   });
 
-  const login = (newToken: string, newUser: User) => {
+  const login = (newToken: string) => {
+    const decoded = jwtDecode<JwtPayload>(newToken);
+    const newUser: User = {
+      email: decoded.email,
+      role: decoded.role,
+      userId: decoded.sub,
+    };
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
     setToken(newToken);
