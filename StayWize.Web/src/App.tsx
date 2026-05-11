@@ -1,9 +1,10 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './features/auth/LoginPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { MainLayout } from './components/layout/MainLayout';
 
 function DashboardPlaceholder() {
-  return <div className="p-8 text-xl font-bold">Dashboard — próximamente</div>;
+  return <div className="text-xl font-bold">Dashboard — próximamente</div>;
 }
 
 function App() {
@@ -14,7 +15,9 @@ function App() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <DashboardPlaceholder />
+            <MainLayout>
+              <DashboardPlaceholder />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
