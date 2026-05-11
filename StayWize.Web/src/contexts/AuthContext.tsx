@@ -10,7 +10,7 @@ interface User {
 interface JwtPayload {
   sub: string;
   email: string;
-  role: string;
+  'http://schemas.microsoft.com/ws/2008/06/identity/claims/role': string;
 }
 
 interface AuthContextType {
@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const decoded = jwtDecode<JwtPayload>(newToken);
     const newUser: User = {
       email: decoded.email,
-      role: decoded.role,
+      role: decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
       userId: decoded.sub,
     };
     localStorage.setItem('token', newToken);

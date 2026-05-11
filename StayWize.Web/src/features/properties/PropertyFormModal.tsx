@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -24,14 +24,14 @@ export function PropertyFormModal({ property, onClose }: Props) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<PropertyForm>({
-    resolver: zodResolver(propertySchema),
-    defaultValues: property ?? undefined,
-  });
+const {
+  register,
+  handleSubmit,
+  formState: { errors, isSubmitting },
+} = useForm<PropertyForm>({
+  resolver: zodResolver(propertySchema) as any,
+  defaultValues: property ?? undefined,
+});
 
   const createMutation = useMutation({
     mutationFn: (data: PropertyForm) =>
@@ -51,13 +51,13 @@ export function PropertyFormModal({ property, onClose }: Props) {
     },
   });
 
-  const onSubmit = (data: PropertyForm) => {
+    const onSubmit: SubmitHandler<PropertyForm> = (data) => {
     if (property) {
-      updateMutation.mutate(data);
+        updateMutation.mutate(data);
     } else {
-      createMutation.mutate(data);
+        createMutation.mutate(data);
     }
-  };
+    };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -65,7 +65,8 @@ export function PropertyFormModal({ property, onClose }: Props) {
         <h2 className="text-lg font-bold text-gray-800 mb-4">
           {property ? 'Editar propiedad' : 'Nueva propiedad'}
         </h2>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+        <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-3">
+
           {(['name', 'address', 'city', 'country'] as const).map((field) => (
             <div key={field}>
               <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">

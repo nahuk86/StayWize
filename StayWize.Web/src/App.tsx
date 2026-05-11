@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { MainLayout } from './components/layout/MainLayout';
 import { DashboardPage } from './features/dashboard/DashboardPage';
 import { PropertiesPage } from './features/properties/PropertiesPage';
+import { ClientsPage } from './features/clients/ClientsPage';
 
 function App() {
   return (
@@ -25,6 +26,16 @@ function App() {
           <ProtectedRoute>
             <MainLayout>
               <DashboardPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/clients"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ClientsPage />
             </MainLayout>
           </ProtectedRoute>
         }
