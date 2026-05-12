@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
+using StayWize.Services.Encryption;
 
 namespace StayWize.Application.UseCases.AccessCodes;
 
@@ -11,10 +12,14 @@ public class GetAccessCodesByReservationQueryHandler
     : IRequestHandler<GetAccessCodesByReservationQuery, IEnumerable<AccessCodeDto>>
 {
     private readonly IAccessCodeRepository _repository;
+    private readonly IEncryptionService _encryptionService;
 
-    public GetAccessCodesByReservationQueryHandler(IAccessCodeRepository repository)
+    public GetAccessCodesByReservationQueryHandler(
+        IAccessCodeRepository repository,
+        IEncryptionService encryptionService)
     {
         _repository = repository;
+        _encryptionService = encryptionService;
     }
 
     public async Task<IEnumerable<AccessCodeDto>> Handle(
@@ -27,12 +32,18 @@ public class GetAccessCodesByReservationQueryHandler
         {
             Id = c.Id,
             ReservationId = c.ReservationId,
-            Code = c.Code,
+            Code = TryDecrypt(c.Code),
             ValidFrom = c.ValidFrom,
             ValidTo = c.ValidTo,
             Status = c.Status,
             Type = c.Type,
             CreatedAt = c.CreatedAt
         });
+    }
+
+    private string TryDecrypt(string code)
+    {
+        try { return _encryptionService.Decrypt(code); }
+        catch { return code; }
     }
 }

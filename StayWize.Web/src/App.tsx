@@ -6,6 +6,7 @@ import { DashboardPage } from './features/dashboard/DashboardPage';
 import { PropertiesPage } from './features/properties/PropertiesPage';
 import { ClientsPage } from './features/clients/ClientsPage';
 import { ReservationsPage } from './features/reservations/ReservationsPage';
+import { AccessCodesPage } from './features/access-codes/AccessCodesPage';
 
 function App() {
   return (
@@ -17,6 +18,16 @@ function App() {
           <ProtectedRoute>
             <MainLayout>
               <PropertiesPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/access-codes"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <AccessCodesPage />
             </MainLayout>
           </ProtectedRoute>
         }
