@@ -11,10 +11,18 @@ public class HostLocal : BaseEntity
     public string Zone { get; private set; } = string.Empty;
     public bool IsAvailable { get; private set; } = true;
 
+    // Vínculo con Identity
+    public string? UserId { get; private set; }
+
+    // Propiedades asignadas
+    public IReadOnlyCollection<PropertyHostLocal> PropertyAssignments => _propertyAssignments.AsReadOnly();
+    private readonly List<PropertyHostLocal> _propertyAssignments = new();
+
     private HostLocal() { }
 
     public static HostLocal Create(string firstName, string lastName,
-                                    string email, string phone, string zone)
+                                    string email, string phone, string zone,
+                                    string? userId = null)
     {
         return new HostLocal
         {
@@ -22,7 +30,8 @@ public class HostLocal : BaseEntity
             LastName = lastName,
             Email = email,
             Phone = phone,
-            Zone = zone
+            Zone = zone,
+            UserId = userId
         };
     }
 
@@ -36,5 +45,6 @@ public class HostLocal : BaseEntity
         Zone = zone;
     }
 
+    public void SetUserId(string userId) => UserId = userId;
     public void SetAvailability(bool available) => IsAvailable = available;
 }

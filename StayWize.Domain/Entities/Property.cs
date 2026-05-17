@@ -11,8 +11,12 @@ public class Property : BaseEntity
     public int MaxGuests { get; private set; }
     public bool IsActive { get; private set; } = true;
 
-    // Relaciones
     public Guid OwnerId { get; private set; }
+
+    // HostLocals asignados
+    public IReadOnlyCollection<PropertyHostLocal> HostLocalAssignments => _hostLocalAssignments.AsReadOnly();
+    private readonly List<PropertyHostLocal> _hostLocalAssignments = new();
+
     public IReadOnlyCollection<Reservation> Reservations => _reservations.AsReadOnly();
     private readonly List<Reservation> _reservations = new();
 

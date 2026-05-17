@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using StayWize.Application.DTOs;
 using StayWize.Application.UseCases.Reservations;
 using StayWize.Services.ExceptionHandling;
+using System.Security.Claims;
 
 namespace StayWize.API.Controllers;
 
@@ -22,7 +23,9 @@ public class ReservationsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var result = await _mediator.Send(new GetAllReservationsQuery());
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        var result = await _mediator.Send(new GetAllReservationsQuery(userId, role));
         return Ok(result);
     }
 

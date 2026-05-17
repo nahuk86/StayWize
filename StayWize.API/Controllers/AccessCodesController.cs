@@ -1,9 +1,12 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
 using StayWize.Application.UseCases.AccessCodes;
+using StayWize.Application.UseCases.Reservations;
 using StayWize.Services.ExceptionHandling;
+using System.Security.Claims;
 
 namespace StayWize.API.Controllers;
 
@@ -13,16 +16,37 @@ namespace StayWize.API.Controllers;
 public class AccessCodesController : ControllerBase
 {
     private readonly IMediator _mediator;
-
-    public AccessCodesController(IMediator mediator)
+    private readonly IPropertyRepository _propertyRepository;
+    public AccessCodesController(IMediator mediator, IPropertyRepository propertyRepository)
     {
         _mediator = mediator;
+        _propertyRepository = propertyRepository;
     }
 
     [HttpGet("reservation/{reservationId:guid}")]
     [Authorize(Roles = "Admin,Owner,HostLocal")]
     public async Task<IActionResult> GetByReservation(Guid reservationId)
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var role = User.FindFirstValue(ClaimTypes.Role);
+
+        // Admin ve todo
+        if (role != "Admin")
+        {
+            // Verificar que la reserva pertenece a una propiedad accesible
+            var reservation = await _mediator.Send(new GetReservationByIdQuery(reservationId));
+            if (reservation is null)
+                throw new NotFoundException("Reserva", reservationId);
+
+            var properties = role == "Owner"
+                ? await _propertyRepository.GetByOwnerIdAsync(userId!)
+                : await _propertyRepository.GetByHostLocalUserIdAsync(userId!);
+
+            var propertyIds = properties.Select(p => p.Id);
+            if (!propertyIds.Contains(reservation.PropertyId))
+                return Forbid();
+        }
+
         var result = await _mediator.Send(new GetAccessCodesByReservationQuery(reservationId));
         return Ok(result);
     }
