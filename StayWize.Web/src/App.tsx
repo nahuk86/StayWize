@@ -7,6 +7,8 @@ import { PropertiesPage } from './features/properties/PropertiesPage';
 import { ClientsPage } from './features/clients/ClientsPage';
 import { ReservationsPage } from './features/reservations/ReservationsPage';
 import { AccessCodesPage } from './features/access-codes/AccessCodesPage';
+import { UsersPage } from './features/users/UsersPage';
+
 
 function App() {
   return (
@@ -58,6 +60,17 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <ReservationsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute allowedRoles={['Admin', 'Owner']}>
+              <MainLayout>
+                <UsersPage />
               </MainLayout>
             </ProtectedRoute>
           }
