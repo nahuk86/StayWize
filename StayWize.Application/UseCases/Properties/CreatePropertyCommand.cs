@@ -29,7 +29,8 @@ public class CreatePropertyCommandHandler
             dto.City,
             dto.Country,
             dto.MaxGuests,
-            dto.OwnerId);
+            dto.OwnerId,
+            dto.IsSelfCheckIn);
 
         await _repository.AddAsync(property);
 
@@ -42,6 +43,7 @@ public class CreatePropertyCommandHandler
             Country = property.Country,
             MaxGuests = property.MaxGuests,
             IsActive = property.IsActive,
+            IsSelfCheckIn = property.IsSelfCheckIn,
             OwnerId = property.OwnerId,
             CreatedAt = property.CreatedAt,
             UpdatedAt = property.UpdatedAt

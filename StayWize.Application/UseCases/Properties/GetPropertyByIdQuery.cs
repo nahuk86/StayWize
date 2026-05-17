@@ -33,6 +33,7 @@ public class GetPropertyByIdQueryHandler
             Country = property.Country,
             MaxGuests = property.MaxGuests,
             IsActive = property.IsActive,
+            IsSelfCheckIn = property.IsSelfCheckIn,
             OwnerId = property.OwnerId,
             CreatedAt = property.CreatedAt,
             UpdatedAt = property.UpdatedAt

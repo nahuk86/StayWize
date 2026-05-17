@@ -8,4 +8,5 @@ public class CreatePropertyDto
     public string Country { get; set; } = string.Empty;
     public int MaxGuests { get; set; }
     public Guid OwnerId { get; set; }
+    public bool IsSelfCheckIn { get; set; } = false;
 }

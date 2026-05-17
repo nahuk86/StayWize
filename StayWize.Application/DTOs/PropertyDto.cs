@@ -9,6 +9,7 @@ public class PropertyDto
     public string Country { get; set; } = string.Empty;
     public int MaxGuests { get; set; }
     public bool IsActive { get; set; }
+    public bool IsSelfCheckIn { get; set; }
     public Guid OwnerId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

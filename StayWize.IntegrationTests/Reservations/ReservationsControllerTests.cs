@@ -50,6 +50,7 @@ public class ReservationsControllerTests : IntegrationTestBase
         };
 
         await Client.PostAsJsonAsync("/api/reservations", dto);
+
         var response = await Client.PostAsJsonAsync("/api/reservations", dto);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -109,7 +110,8 @@ public class ReservationsControllerTests : IntegrationTestBase
             City = "Buenos Aires",
             Country = "Argentina",
             MaxGuests = 4,
-            OwnerId = Guid.NewGuid()
+            OwnerId = Guid.NewGuid(),
+            IsSelfCheckIn = true   // evita el 422 al crear reservas sin host local
         };
         var response = await Client.PostAsJsonAsync("/api/properties", dto);
         var result = await response.Content.ReadFromJsonAsync<PropertyDto>();

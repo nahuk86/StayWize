@@ -25,53 +25,54 @@ public class CreateReservationCommandHandlerTests
         _concurrencyService,
         _logServiceMock.Object);
 
+    private Property MakeSelfCheckInProperty()
+        => Property.Create("Casa", "Calle 1", "BA", "AR", 4, Guid.NewGuid(), isSelfCheckIn: true);
+
+    private Property MakeNonSelfCheckInProperty()
+        => Property.Create("Casa", "Calle 1", "BA", "AR", 4, Guid.NewGuid(), isSelfCheckIn: false);
+
     [Fact]
     public async Task Handle_ValidData_ShouldCreateReservation()
     {
-        var propertyId = Guid.NewGuid();
+        var property = MakeSelfCheckInProperty();
         var clientId = Guid.NewGuid();
 
-        _propertyRepoMock.Setup(r => r.ExistsAsync(propertyId)).ReturnsAsync(true);
+        _propertyRepoMock.Setup(r => r.GetByIdAsync(property.Id)).ReturnsAsync(property);
         _clientRepoMock.Setup(r => r.ExistsAsync(clientId)).ReturnsAsync(true);
         _reservationRepoMock.Setup(r => r.HasOverlapAsync(
-            propertyId, It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(false);
+            property.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(false);
 
         var dto = new CreateReservationDto
         {
-            PropertyId = propertyId,
+            PropertyId = property.Id,
             ClientId = clientId,
             CheckIn = DateTime.UtcNow.AddDays(1),
             CheckOut = DateTime.UtcNow.AddDays(5),
             GuestCount = 2
         };
 
-        var result = await CreateHandler().Handle(
-            new CreateReservationCommand(dto), CancellationToken.None);
+        var result = await CreateHandler().Handle(new CreateReservationCommand(dto), CancellationToken.None);
 
         result.Should().NotBeNull();
-        result.PropertyId.Should().Be(propertyId);
+        result.PropertyId.Should().Be(property.Id);
         result.ClientId.Should().Be(clientId);
     }
 
     [Fact]
     public async Task Handle_PropertyNotFound_ShouldThrowNotFoundException()
     {
-        var propertyId = Guid.NewGuid();
-        var clientId = Guid.NewGuid();
-
-        _propertyRepoMock.Setup(r => r.ExistsAsync(propertyId)).ReturnsAsync(false);
+        _propertyRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Property?)null);
 
         var dto = new CreateReservationDto
         {
-            PropertyId = propertyId,
-            ClientId = clientId,
+            PropertyId = Guid.NewGuid(),
+            ClientId = Guid.NewGuid(),
             CheckIn = DateTime.UtcNow.AddDays(1),
             CheckOut = DateTime.UtcNow.AddDays(5),
             GuestCount = 2
         };
 
-        var action = async () => await CreateHandler().Handle(
-            new CreateReservationCommand(dto), CancellationToken.None);
+        var action = async () => await CreateHandler().Handle(new CreateReservationCommand(dto), CancellationToken.None);
 
         await action.Should().ThrowAsync<NotFoundException>();
     }
@@ -79,23 +80,21 @@ public class CreateReservationCommandHandlerTests
     [Fact]
     public async Task Handle_ClientNotFound_ShouldThrowNotFoundException()
     {
-        var propertyId = Guid.NewGuid();
-        var clientId = Guid.NewGuid();
+        var property = MakeSelfCheckInProperty();
 
-        _propertyRepoMock.Setup(r => r.ExistsAsync(propertyId)).ReturnsAsync(true);
-        _clientRepoMock.Setup(r => r.ExistsAsync(clientId)).ReturnsAsync(false);
+        _propertyRepoMock.Setup(r => r.GetByIdAsync(property.Id)).ReturnsAsync(property);
+        _clientRepoMock.Setup(r => r.ExistsAsync(It.IsAny<Guid>())).ReturnsAsync(false);
 
         var dto = new CreateReservationDto
         {
-            PropertyId = propertyId,
-            ClientId = clientId,
+            PropertyId = property.Id,
+            ClientId = Guid.NewGuid(),
             CheckIn = DateTime.UtcNow.AddDays(1),
             CheckOut = DateTime.UtcNow.AddDays(5),
             GuestCount = 2
         };
 
-        var action = async () => await CreateHandler().Handle(
-            new CreateReservationCommand(dto), CancellationToken.None);
+        var action = async () => await CreateHandler().Handle(new CreateReservationCommand(dto), CancellationToken.None);
 
         await action.Should().ThrowAsync<NotFoundException>();
     }
@@ -103,26 +102,76 @@ public class CreateReservationCommandHandlerTests
     [Fact]
     public async Task Handle_DateOverlap_ShouldThrowConflictException()
     {
-        var propertyId = Guid.NewGuid();
+        var property = MakeSelfCheckInProperty();
         var clientId = Guid.NewGuid();
 
-        _propertyRepoMock.Setup(r => r.ExistsAsync(propertyId)).ReturnsAsync(true);
+        _propertyRepoMock.Setup(r => r.GetByIdAsync(property.Id)).ReturnsAsync(property);
         _clientRepoMock.Setup(r => r.ExistsAsync(clientId)).ReturnsAsync(true);
         _reservationRepoMock.Setup(r => r.HasOverlapAsync(
-            propertyId, It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(true);
+            property.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(true);
 
         var dto = new CreateReservationDto
         {
-            PropertyId = propertyId,
+            PropertyId = property.Id,
             ClientId = clientId,
             CheckIn = DateTime.UtcNow.AddDays(1),
             CheckOut = DateTime.UtcNow.AddDays(5),
             GuestCount = 2
         };
 
-        var action = async () => await CreateHandler().Handle(
-            new CreateReservationCommand(dto), CancellationToken.None);
+        var action = async () => await CreateHandler().Handle(new CreateReservationCommand(dto), CancellationToken.None);
 
         await action.Should().ThrowAsync<ConflictException>();
+    }
+
+    [Fact]
+    public async Task Handle_NonSelfCheckIn_NoHostLocal_ShouldThrowValidationException()
+    {
+        var property = MakeNonSelfCheckInProperty();
+
+        _propertyRepoMock.Setup(r => r.GetByIdAsync(property.Id)).ReturnsAsync(property);
+
+        var dto = new CreateReservationDto
+        {
+            PropertyId = property.Id,
+            ClientId = Guid.NewGuid(),
+            CheckIn = DateTime.UtcNow.AddDays(1),
+            CheckOut = DateTime.UtcNow.AddDays(5),
+            GuestCount = 2,
+            HostLocalId = null
+        };
+
+        var action = async () => await CreateHandler().Handle(new CreateReservationCommand(dto), CancellationToken.None);
+
+        await action.Should().ThrowAsync<ValidationException>()
+            .WithMessage("*host local*");
+    }
+
+    [Fact]
+    public async Task Handle_NonSelfCheckIn_WithHostLocal_ShouldCreate()
+    {
+        var property = MakeNonSelfCheckInProperty();
+        var clientId = Guid.NewGuid();
+        var hostLocalId = Guid.NewGuid();
+
+        _propertyRepoMock.Setup(r => r.GetByIdAsync(property.Id)).ReturnsAsync(property);
+        _clientRepoMock.Setup(r => r.ExistsAsync(clientId)).ReturnsAsync(true);
+        _reservationRepoMock.Setup(r => r.HasOverlapAsync(
+            property.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(false);
+
+        var dto = new CreateReservationDto
+        {
+            PropertyId = property.Id,
+            ClientId = clientId,
+            CheckIn = DateTime.UtcNow.AddDays(1),
+            CheckOut = DateTime.UtcNow.AddDays(5),
+            GuestCount = 2,
+            HostLocalId = hostLocalId
+        };
+
+        var result = await CreateHandler().Handle(new CreateReservationCommand(dto), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result.HostLocalId.Should().Be(hostLocalId);
     }
 }
