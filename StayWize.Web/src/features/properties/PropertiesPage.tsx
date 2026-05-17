@@ -2,11 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { propertyService, type PropertyDto } from './propertyService';
 import { PropertyFormModal } from './PropertyFormModal';
+import { AssignHostLocalModal } from './AssignHostLocalModal';
 
 export function PropertiesPage() {
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<PropertyDto | null>(null);
+  const [assigning, setAssigning] = useState<PropertyDto | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['properties'],
@@ -71,9 +73,12 @@ export function PropertiesPage() {
                 <td className="px-4 py-3 text-gray-600">{property.city}</td>
                 <td className="px-4 py-3 text-gray-600">{property.country}</td>
                 <td className="px-4 py-3 text-gray-600">{property.maxGuests}</td>
-                <td className="px-4 py-3 flex gap-3">
-                  <button onClick={() => handleEdit(property)} className="text-blue-600 hover:underline text-sm">Editar</button>
-                  <button onClick={() => handleDelete(property.id)} className="text-red-600 hover:underline text-sm">Eliminar</button>
+                <td className="px-4 py-3">
+                  <div className="flex gap-3">
+                    <button onClick={() => handleEdit(property)} className="text-blue-600 hover:underline text-sm">Editar</button>
+                    <button onClick={() => setAssigning(property)} className="text-amber-600 hover:underline text-sm">Asignar HL</button>
+                    <button onClick={() => handleDelete(property.id)} className="text-red-600 hover:underline text-sm">Eliminar</button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -100,6 +105,7 @@ export function PropertiesPage() {
             </div>
             <div className="flex gap-3 mt-3 pt-3 border-t border-gray-100">
               <button onClick={() => handleEdit(property)} className="text-blue-600 text-sm font-medium">Editar</button>
+              <button onClick={() => setAssigning(property)} className="text-amber-600 text-sm font-medium">Asignar HL</button>
               <button onClick={() => handleDelete(property.id)} className="text-red-600 text-sm font-medium">Eliminar</button>
             </div>
           </div>
@@ -108,6 +114,13 @@ export function PropertiesPage() {
 
       {showModal && (
         <PropertyFormModal property={editing} onClose={handleClose} />
+      )}
+
+      {assigning && (
+        <AssignHostLocalModal
+          property={assigning}
+          onClose={() => setAssigning(null)}
+        />
       )}
     </div>
   );

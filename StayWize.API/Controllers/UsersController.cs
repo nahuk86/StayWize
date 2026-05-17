@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using StayWize.Services.Authentication;
+using StayWize.Application.Common.Interfaces;
+using StayWize.Domain.Entities;
 
 namespace StayWize.API.Controllers;
 
@@ -12,13 +14,18 @@ public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly IAuthService _authService;
+    private readonly IHostLocalRepository _hostLocalRepository;
 
-    public UsersController(IUserService userService, IAuthService authService)
+
+    public UsersController(
+        IUserService userService,
+        IAuthService authService,
+        IHostLocalRepository hostLocalRepository)
     {
         _userService = userService;
         _authService = authService;
+        _hostLocalRepository = hostLocalRepository;
     }
-
     [HttpGet]
     [Authorize(Roles = "Admin,Owner")]
     public async Task<IActionResult> GetAll()
@@ -34,18 +41,38 @@ public class UsersController : ControllerBase
         var user = await _userService.GetByIdAsync(id);
         return Ok(user);
     }
-
+    
     [HttpPost]
     [Authorize(Roles = "Admin,Owner")]
     public async Task<IActionResult> Create([FromBody] RegisterDto dto)
     {
         var callerRole = User.FindFirstValue(ClaimTypes.Role);
 
-        // BE-026-3: Owner solo puede crear Guests
         if (callerRole == "Owner" && dto.Role != "Guest")
             return Forbid();
 
         var result = await _authService.RegisterAsync(dto);
+
+        // Si el rol es HostLocal, crear la entidad de dominio automáticamente
+        if (dto.Role == "HostLocal")
+        {
+            var hostLocal = HostLocal.Create(
+                dto.FirstName,
+                dto.LastName,
+                dto.Email,
+                string.Empty,
+                string.Empty,
+                result.Email);
+
+            // Necesitamos el userId — buscamos por email
+            var users = await _userService.GetAllAsync();
+            var newUser = users.FirstOrDefault(u => u.Email == dto.Email);
+            if (newUser is not null)
+                hostLocal.SetUserId(newUser.Id);
+
+            await _hostLocalRepository.AddAsync(hostLocal);
+        }
+
         return CreatedAtAction(nameof(GetById), new { id = result.Email }, result);
     }
 
