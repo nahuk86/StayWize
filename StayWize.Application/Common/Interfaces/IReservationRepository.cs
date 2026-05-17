@@ -5,6 +5,7 @@ namespace StayWize.Application.Common.Interfaces;
 public interface IReservationRepository : IRepository<Reservation>
 {
     Task<IEnumerable<Reservation>> GetByPropertyIdAsync(Guid propertyId);
+    Task<IEnumerable<Reservation>> GetByPropertyIdsAsync(IEnumerable<Guid> propertyIds);
     Task<IEnumerable<Reservation>> GetByClientIdAsync(Guid clientId);
     Task<bool> HasOverlapAsync(Guid propertyId, DateTime checkIn, DateTime checkOut);
     Task<IEnumerable<Reservation>> GetByPropertyIdAndDateRangeAsync(Guid propertyId, DateTime dateFrom, DateTime dateTo);

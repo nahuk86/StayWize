@@ -4,7 +4,8 @@ using StayWize.Application.DTOs;
 
 namespace StayWize.Application.UseCases.Properties;
 
-public record GetAllPropertiesQuery : IRequest<IEnumerable<PropertyDto>>;
+public record GetAllPropertiesQuery(string? UserId = null, string? Role = null)
+    : IRequest<IEnumerable<PropertyDto>>;
 
 public class GetAllPropertiesQueryHandler
     : IRequestHandler<GetAllPropertiesQuery, IEnumerable<PropertyDto>>
@@ -20,7 +21,24 @@ public class GetAllPropertiesQueryHandler
         GetAllPropertiesQuery request,
         CancellationToken cancellationToken)
     {
-        var properties = await _repository.GetAllAsync();
+        IEnumerable<Domain.Entities.Property> properties;
+
+        if (request.Role == "Admin")
+        {
+            properties = await _repository.GetAllAsync();
+        }
+        else if (request.Role == "Owner" && request.UserId is not null)
+        {
+            properties = await _repository.GetByOwnerIdAsync(request.UserId);
+        }
+        else if (request.Role == "HostLocal" && request.UserId is not null)
+        {
+            properties = await _repository.GetByHostLocalUserIdAsync(request.UserId);
+        }
+        else
+        {
+            properties = Enumerable.Empty<Domain.Entities.Property>();
+        }
 
         return properties.Select(p => new PropertyDto
         {

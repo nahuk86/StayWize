@@ -17,11 +17,28 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<Reservation> Reservations => Set<Reservation>();
     public DbSet<AccessCode> AccessCodes => Set<AccessCode>();
     public DbSet<AccessLog> AccessLogs => Set<AccessLog>();
+    public DbSet<PropertyHostLocal> PropertyHostLocals => Set<PropertyHostLocal>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        // Configuración de PropertyHostLocal (tabla de asignación N:N)
+        modelBuilder.Entity<PropertyHostLocal>(entity =>
+        {
+            entity.HasKey(e => new { e.PropertyId, e.HostLocalId });
+
+            entity.HasOne(e => e.Property)
+                .WithMany(p => p.HostLocalAssignments)
+                .HasForeignKey(e => e.PropertyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.HostLocal)
+                .WithMany(h => h.PropertyAssignments)
+                .HasForeignKey(e => e.HostLocalId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

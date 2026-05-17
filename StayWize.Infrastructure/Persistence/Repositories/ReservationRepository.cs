@@ -61,4 +61,12 @@ public class ReservationRepository : BaseRepository<Reservation>, IReservationRe
             r.CheckIn < checkOut &&
             r.CheckOut > checkIn);
     }
+    public async Task<IEnumerable<Reservation>> GetByPropertyIdsAsync(IEnumerable<Guid> propertyIds)
+    {
+        return await _dbSet
+            .Include(r => r.Property)
+            .Include(r => r.Client)
+            .Where(r => propertyIds.Contains(r.PropertyId))
+            .ToListAsync();
+    }
 }
