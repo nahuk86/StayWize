@@ -33,6 +33,9 @@ public static class DependencyInjection
         // Notifications
         services.AddScoped<IEmailService, EmailService>();
 
+        services.AddScoped<IUserService, UserService>();
+
+
         var jwtSettings = configuration.GetSection("JwtSettings");
         var secretKey = jwtSettings["SecretKey"]!;
 

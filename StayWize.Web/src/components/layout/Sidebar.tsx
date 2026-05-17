@@ -19,6 +19,8 @@ const navItems: NavItem[] = [
   { to: '/clients', label: 'Clientes', icon: 'CL', roles: ['Admin', 'Owner'] },
   { to: '/reservations', label: 'Reservas', icon: 'RS', roles: ['Admin', 'Owner', 'HostLocal'] },
   { to: '/access-codes', label: 'Códigos de acceso', icon: 'AC', roles: ['Admin', 'Owner', 'HostLocal'] },
+  { to: '/users', label: 'Usuarios', icon: 'US', roles: ['Admin', 'Owner'] },
+
 ];
 
 export function Sidebar({ isOpen, onClose }: Props) {
