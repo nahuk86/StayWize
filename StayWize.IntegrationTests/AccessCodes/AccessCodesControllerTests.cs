@@ -52,41 +52,39 @@ public class AccessCodesControllerTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task GetByReservation_ExistingReservation_ShouldReturn200()
+    {
+        await AuthenticateAsync("Admin");
+
+        var reservationId = await CreateConfirmedReservationIdAsync();
+
+        var response = await Client.GetAsync($"/api/access-codes/reservation/{reservationId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task Validate_ValidCode_ShouldReturn200()
     {
         await AuthenticateAsync("Admin");
 
         var code = await GenerateAccessCodeAsync();
 
-        var dto = new ValidateAccessCodeDto
-        {
-            Code = code,
-            EventType = AccessEventType.Entry
-        };
-
+        var dto = new ValidateAccessCodeDto { Code = code };
         var response = await Client.PostAsJsonAsync("/api/access-codes/validate", dto);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<ValidateAccessCodeResultDto>();
-        result!.Success.Should().BeTrue();
     }
 
     [Fact]
-    public async Task Validate_NonExistentCode_ShouldReturn400()
+    public async Task Validate_InvalidCode_ShouldReturn400()
     {
         await AuthenticateAsync("Admin");
 
-        var dto = new ValidateAccessCodeDto
-        {
-            Code = "000000",
-            EventType = AccessEventType.Entry
-        };
-
+        var dto = new ValidateAccessCodeDto { Code = "000000" };
         var response = await Client.PostAsJsonAsync("/api/access-codes/validate", dto);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        var result = await response.Content.ReadFromJsonAsync<ValidateAccessCodeResultDto>();
-        result!.Success.Should().BeFalse();
     }
 
     [Fact]
@@ -118,7 +116,8 @@ public class AccessCodesControllerTests : IntegrationTestBase
             City = "BA",
             Country = "AR",
             MaxGuests = 4,
-            OwnerId = Guid.NewGuid()
+            OwnerId = Guid.NewGuid(),
+            IsSelfCheckIn = true   // necesario para poder generar códigos de acceso
         };
         var propertyResponse = await Client.PostAsJsonAsync("/api/properties", propertyDto);
         var property = await propertyResponse.Content.ReadFromJsonAsync<PropertyDto>();

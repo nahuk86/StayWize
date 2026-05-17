@@ -29,7 +29,8 @@ public class UpdatePropertyCommandHandler
             request.Dto.Address,
             request.Dto.City,
             request.Dto.Country,
-            request.Dto.MaxGuests);
+            request.Dto.MaxGuests,
+            request.Dto.IsSelfCheckIn);
 
         property.MarkAsUpdated("system");
         await _repository.UpdateAsync(property);

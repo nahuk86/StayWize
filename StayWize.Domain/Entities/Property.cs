@@ -10,10 +10,10 @@ public class Property : BaseEntity
     public string Country { get; private set; } = string.Empty;
     public int MaxGuests { get; private set; }
     public bool IsActive { get; private set; } = true;
+    public bool IsSelfCheckIn { get; private set; } = false;
 
     public Guid OwnerId { get; private set; }
 
-    // HostLocals asignados
     public IReadOnlyCollection<PropertyHostLocal> HostLocalAssignments => _hostLocalAssignments.AsReadOnly();
     private readonly List<PropertyHostLocal> _hostLocalAssignments = new();
 
@@ -23,7 +23,8 @@ public class Property : BaseEntity
     private Property() { }
 
     public static Property Create(string name, string address, string city,
-                                   string country, int maxGuests, Guid ownerId)
+                                   string country, int maxGuests, Guid ownerId,
+                                   bool isSelfCheckIn = false)
     {
         return new Property
         {
@@ -32,19 +33,23 @@ public class Property : BaseEntity
             City = city,
             Country = country,
             MaxGuests = maxGuests,
-            OwnerId = ownerId
+            OwnerId = ownerId,
+            IsSelfCheckIn = isSelfCheckIn
         };
     }
 
     public void Update(string name, string address, string city,
-                       string country, int maxGuests)
+                       string country, int maxGuests, bool isSelfCheckIn)
     {
         Name = name;
         Address = address;
         City = city;
         Country = country;
         MaxGuests = maxGuests;
+        IsSelfCheckIn = isSelfCheckIn;
     }
+
+    public void SetSelfCheckIn(bool value) => IsSelfCheckIn = value;
 
     public void Deactivate() => IsActive = false;
     public void Activate() => IsActive = true;

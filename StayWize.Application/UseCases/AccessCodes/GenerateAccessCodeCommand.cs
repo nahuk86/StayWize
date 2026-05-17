@@ -16,6 +16,7 @@ public class GenerateAccessCodeCommandHandler
 {
     private readonly IAccessCodeRepository _accessCodeRepository;
     private readonly IReservationRepository _reservationRepository;
+    private readonly IPropertyRepository _propertyRepository;
     private readonly IClientRepository _clientRepository;
     private readonly IEncryptionService _encryptionService;
     private readonly IEmailService _emailService;
@@ -23,12 +24,14 @@ public class GenerateAccessCodeCommandHandler
     public GenerateAccessCodeCommandHandler(
         IAccessCodeRepository accessCodeRepository,
         IReservationRepository reservationRepository,
+        IPropertyRepository propertyRepository,
         IClientRepository clientRepository,
         IEncryptionService encryptionService,
         IEmailService emailService)
     {
         _accessCodeRepository = accessCodeRepository;
         _reservationRepository = reservationRepository;
+        _propertyRepository = propertyRepository;
         _clientRepository = clientRepository;
         _encryptionService = encryptionService;
         _emailService = emailService;
@@ -47,20 +50,28 @@ public class GenerateAccessCodeCommandHandler
         if (reservation.Status != ReservationStatus.Confirmed)
             throw new ConflictException("Solo se pueden generar códigos para reservas confirmadas.");
 
+        // Regla de negocio: solo se generan códigos para propiedades con self check-in
+        var property = await _propertyRepository.GetByIdAsync(reservation.PropertyId);
+        if (property is null)
+            throw new NotFoundException("Propiedad", reservation.PropertyId);
+
+        if (!property.IsSelfCheckIn)
+            throw new ConflictException(
+                "Solo se pueden generar códigos de acceso para propiedades con self check-in habilitado.");
+
         var accessCode = AccessCode.Create(
             dto.ReservationId,
             dto.ValidFrom,
             dto.ValidTo,
             dto.Type);
 
-        // Guardamos el código en claro antes de encriptar
         var plainCode = accessCode.Code;
         var encryptedCode = _encryptionService.Encrypt(plainCode);
         accessCode.SetEncryptedCode(encryptedCode);
 
         await _accessCodeRepository.AddAsync(accessCode);
 
-        // Notificación fire and forget
+        // Notificación al guest — fire and forget
         var client = await _clientRepository.GetByIdAsync(reservation.ClientId);
         if (client is not null)
         {

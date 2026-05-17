@@ -40,11 +40,21 @@ public class CreateReservationCommandHandler
     {
         var dto = request.Dto;
 
-        var propertyExists = await _propertyRepository.ExistsAsync(dto.PropertyId);
-        if (!propertyExists)
+        var property = await _propertyRepository.GetByIdAsync(dto.PropertyId);
+        if (property is null)
         {
             _logService.LogWarning("Intento de reserva con propiedad inexistente. PropertyId: {PropertyId}", dto.PropertyId);
             throw new NotFoundException("Propiedad", dto.PropertyId);
+        }
+
+        // Regla de negocio: si la propiedad no es self check-in, debe asignarse un host local
+        if (!property.IsSelfCheckIn && dto.HostLocalId is null)
+        {
+            _logService.LogWarning(
+                "Intento de reserva sin host local en propiedad no self check-in. PropertyId: {PropertyId}",
+                dto.PropertyId);
+            throw new ValidationException(
+                "La propiedad no tiene habilitado el self check-in. Debe asignarse un host local a la reserva.");
         }
 
         var clientExists = await _clientRepository.ExistsAsync(dto.ClientId);
@@ -61,7 +71,8 @@ public class CreateReservationCommandHandler
 
         if (hasOverlap)
         {
-            _logService.LogWarning("Conflicto de fechas. PropertyId: {PropertyId} CheckIn: {CheckIn} CheckOut: {CheckOut}",
+            _logService.LogWarning(
+                "Conflicto de fechas. PropertyId: {PropertyId} CheckIn: {CheckIn} CheckOut: {CheckOut}",
                 dto.PropertyId, dto.CheckIn, dto.CheckOut);
             throw new ConflictException("La propiedad ya tiene una reserva activa en el rango de fechas indicado.");
         }
@@ -74,10 +85,14 @@ public class CreateReservationCommandHandler
             dto.GuestCount,
             dto.Notes);
 
+        if (dto.HostLocalId.HasValue)
+            reservation.AssignHostLocal(dto.HostLocalId.Value);
+
         try
         {
             await _reservationRepository.AddAsync(reservation);
-            _logService.LogInformation("Reserva creada. ReservationId: {ReservationId} PropertyId: {PropertyId} ClientId: {ClientId}",
+            _logService.LogInformation(
+                "Reserva creada. ReservationId: {ReservationId} PropertyId: {PropertyId} ClientId: {ClientId}",
                 reservation.Id, reservation.PropertyId, reservation.ClientId);
         }
         catch (Exception ex) when (ex.GetType().Name == "DbUpdateConcurrencyException")
