@@ -2,6 +2,7 @@
 
 namespace StayWize.Services.Authentication;
 
+
 public interface IUserService
 {
     Task<IEnumerable<UserDto>> GetAllAsync();
@@ -30,10 +31,12 @@ public class UpdateUserDto
 public class UserService : IUserService
 {
     private readonly UserManager<AppUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
 
-    public UserService(UserManager<AppUser> userManager)
+    public UserService(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager)
     {
         _userManager = userManager;
+        _roleManager = roleManager;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllAsync()
@@ -88,6 +91,10 @@ public class UserService : IUserService
         user.UserName = dto.Email;
 
         await _userManager.UpdateAsync(user);
+
+        // Crear el rol si no existe
+        if (!await _roleManager.RoleExistsAsync(dto.Role))
+            await _roleManager.CreateAsync(new IdentityRole(dto.Role));
 
         var currentRoles = await _userManager.GetRolesAsync(user);
         await _userManager.RemoveFromRolesAsync(user, currentRoles);

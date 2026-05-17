@@ -14,14 +14,19 @@ namespace StayWize.API.Controllers;
 [Route("api/[controller]")]
 public class PropertiesController : ControllerBase
 {
-    private readonly IMediator _mediator;
-    private readonly IPropertyRepository _propertyRepository;
+private readonly IMediator _mediator;
+private readonly IPropertyRepository _propertyRepository;
+private readonly IHostLocalRepository _hostLocalRepository;
 
-    public PropertiesController(IMediator mediator, IPropertyRepository propertyRepository)
-    {
-        _mediator = mediator;
-        _propertyRepository = propertyRepository;
-    }
+public PropertiesController(
+    IMediator mediator,
+    IPropertyRepository propertyRepository,
+    IHostLocalRepository hostLocalRepository)
+{
+    _mediator = mediator;
+    _propertyRepository = propertyRepository;
+    _hostLocalRepository = hostLocalRepository;
+}
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -68,19 +73,27 @@ public class PropertiesController : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("{id:guid}/assign-hostlocal/{hostLocalId:guid}")]
+    [HttpPost("{id:guid}/assign-hostlocal/{userId}")]
     [Authorize(Roles = "Admin,Owner")]
-    public async Task<IActionResult> AssignHostLocal(Guid id, Guid hostLocalId)
+    public async Task<IActionResult> AssignHostLocal(Guid id, string userId)
     {
-        await _propertyRepository.AssignHostLocalAsync(id, hostLocalId);
+        var hostLocal = await _hostLocalRepository.GetByUserIdAsync(userId);
+        if (hostLocal is null)
+            return BadRequest("El usuario no tiene un perfil de HostLocal asociado.");
+
+        await _propertyRepository.AssignHostLocalAsync(id, hostLocal.Id);
         return NoContent();
     }
 
-    [HttpDelete("{id:guid}/assign-hostlocal/{hostLocalId:guid}")]
+    [HttpDelete("{id:guid}/assign-hostlocal/{userId}")]
     [Authorize(Roles = "Admin,Owner")]
-    public async Task<IActionResult> UnassignHostLocal(Guid id, Guid hostLocalId)
+    public async Task<IActionResult> UnassignHostLocal(Guid id, string userId)
     {
-        await _propertyRepository.UnassignHostLocalAsync(id, hostLocalId);
+        var hostLocal = await _hostLocalRepository.GetByUserIdAsync(userId);
+        if (hostLocal is null)
+            return BadRequest("El usuario no tiene un perfil de HostLocal asociado.");
+
+        await _propertyRepository.UnassignHostLocalAsync(id, hostLocal.Id);
         return NoContent();
     }
 }

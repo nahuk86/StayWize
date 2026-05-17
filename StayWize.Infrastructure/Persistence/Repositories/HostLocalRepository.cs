@@ -20,4 +20,10 @@ public class HostLocalRepository : BaseRepository<HostLocal>, IHostLocalReposito
     {
         return await _dbSet.AnyAsync(h => h.Id == id);
     }
+
+    public async Task<HostLocal?> GetByUserIdAsync(string userId)
+    {
+        return await _dbSet
+            .FirstOrDefaultAsync(h => h.UserId == userId);
+    }
 }

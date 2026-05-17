@@ -6,4 +6,5 @@ public interface IHostLocalRepository : IRepository<HostLocal>
 {
     Task<IEnumerable<HostLocal>> GetAvailableByZoneAsync(string zone);
     Task<bool> ExistsAsync(Guid id);
+    Task<HostLocal?> GetByUserIdAsync(string userId);
 }

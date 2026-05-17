@@ -4,6 +4,7 @@ using StayWize.Infrastructure;
 using StayWize.Services;
 using StayWize.Services.ExceptionHandling;
 
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.Console(outputTemplate:
@@ -60,6 +61,8 @@ try
             }
         });
     });
+
+
 
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);

@@ -8,6 +8,9 @@ export interface PropertyDto {
   country: string;
   maxGuests: number;
   ownerId: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface CreatePropertyDto {
@@ -45,5 +48,11 @@ export const propertyService = {
   },
   remove: async (id: string): Promise<void> => {
     await apiClient.delete(`/properties/${id}`);
+  },
+  assignHostLocal: async (propertyId: string, userId: string): Promise<void> => {
+    await apiClient.post(`/properties/${propertyId}/assign-hostlocal/${userId}`);
+  },
+  unassignHostLocal: async (propertyId: string, userId: string): Promise<void> => {
+    await apiClient.delete(`/properties/${propertyId}/assign-hostlocal/${userId}`);
   },
 };
