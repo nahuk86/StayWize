@@ -22,6 +22,7 @@ public class GenerateAccessCodeCommandHandlerTests
     private readonly Mock<IEncryptionService> _encryptionServiceMock = new();
     private readonly Mock<IEmailService> _emailServiceMock = new();
     private readonly Mock<UserManager<AppUser>> _userManagerMock = CreateUserManagerMock();
+    private readonly Mock<ISmartLockService> _smartLockServiceMock = new();
 
     private static Mock<UserManager<AppUser>> CreateUserManagerMock()
     {
@@ -37,7 +38,8 @@ public class GenerateAccessCodeCommandHandlerTests
         _clientRepoMock.Object,
         _encryptionServiceMock.Object,
         _emailServiceMock.Object,
-        _userManagerMock.Object);
+        _userManagerMock.Object,
+        _smartLockServiceMock.Object);
 
     private Property MakeSelfCheckInProperty(Guid propertyId)
         => Property.Create("Casa", "Calle 1", "BA", "AR", 4, Guid.NewGuid(), isSelfCheckIn: true);

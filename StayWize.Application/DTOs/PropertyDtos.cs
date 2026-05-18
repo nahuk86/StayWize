@@ -1,4 +1,4 @@
-﻿namespace StayWize.Application.DTOs;
+namespace StayWize.Application.DTOs;
 
 public class PropertyDto
 {
@@ -10,6 +10,7 @@ public class PropertyDto
     public int MaxGuests { get; set; }
     public bool IsActive { get; set; }
     public bool IsSelfCheckIn { get; set; }
+    public string? LockDeviceId { get; set; }
     public Guid OwnerId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

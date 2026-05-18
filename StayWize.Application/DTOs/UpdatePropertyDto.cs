@@ -8,4 +8,5 @@ public class UpdatePropertyDto
     public string Country { get; set; } = string.Empty;
     public int MaxGuests { get; set; }
     public bool IsSelfCheckIn { get; set; } = false;
+    public string? LockDeviceId { get; set; }
 }

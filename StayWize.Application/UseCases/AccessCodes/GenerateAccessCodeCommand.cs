@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
@@ -23,6 +23,7 @@ public class GenerateAccessCodeCommandHandler
     private readonly IEncryptionService _encryptionService;
     private readonly IEmailService _emailService;
     private readonly UserManager<AppUser> _userManager;
+    private readonly ISmartLockService _smartLockService;
 
     public GenerateAccessCodeCommandHandler(
         IAccessCodeRepository accessCodeRepository,
@@ -31,7 +32,8 @@ public class GenerateAccessCodeCommandHandler
         IClientRepository clientRepository,
         IEncryptionService encryptionService,
         IEmailService emailService,
-        UserManager<AppUser> userManager)
+        UserManager<AppUser> userManager,
+        ISmartLockService smartLockService)
     {
         _accessCodeRepository = accessCodeRepository;
         _reservationRepository = reservationRepository;
@@ -40,6 +42,7 @@ public class GenerateAccessCodeCommandHandler
         _encryptionService = encryptionService;
         _emailService = emailService;
         _userManager = userManager;
+        _smartLockService = smartLockService;
     }
 
     public async Task<AccessCodeDto> Handle(
@@ -94,6 +97,16 @@ public class GenerateAccessCodeCommandHandler
             _ = _emailService.SendAccessCodeGeneratedAsync(
                 ownerUser.Email!,
                 $"{ownerUser.FirstName} {ownerUser.LastName}",
+                plainCode,
+                accessCode.ValidFrom,
+                accessCode.ValidTo);
+        }
+
+        // Configurar en cerradura IoT si tiene dispositivo asignado — fire and forget
+        if (!string.IsNullOrEmpty(property.LockDeviceId))
+        {
+            _ = _smartLockService.SetCodeAsync(
+                property.LockDeviceId,
                 plainCode,
                 accessCode.ValidFrom,
                 accessCode.ValidTo);

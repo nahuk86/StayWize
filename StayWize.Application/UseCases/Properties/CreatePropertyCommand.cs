@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using StayWize.Application.DTOs;
 using StayWize.Application.Common.Interfaces;
 using StayWize.Domain.Entities;
@@ -30,23 +30,27 @@ public class CreatePropertyCommandHandler
             dto.Country,
             dto.MaxGuests,
             dto.OwnerId,
-            dto.IsSelfCheckIn);
+            dto.IsSelfCheckIn,
+            dto.LockDeviceId);
 
         await _repository.AddAsync(property);
 
-        return new PropertyDto
-        {
-            Id = property.Id,
-            Name = property.Name,
-            Address = property.Address,
-            City = property.City,
-            Country = property.Country,
-            MaxGuests = property.MaxGuests,
-            IsActive = property.IsActive,
-            IsSelfCheckIn = property.IsSelfCheckIn,
-            OwnerId = property.OwnerId,
-            CreatedAt = property.CreatedAt,
-            UpdatedAt = property.UpdatedAt
-        };
+        return MapToDto(property);
     }
+
+    private static PropertyDto MapToDto(Property p) => new()
+    {
+        Id = p.Id,
+        Name = p.Name,
+        Address = p.Address,
+        City = p.City,
+        Country = p.Country,
+        MaxGuests = p.MaxGuests,
+        IsActive = p.IsActive,
+        IsSelfCheckIn = p.IsSelfCheckIn,
+        LockDeviceId = p.LockDeviceId,
+        OwnerId = p.OwnerId,
+        CreatedAt = p.CreatedAt,
+        UpdatedAt = p.UpdatedAt
+    };
 }
