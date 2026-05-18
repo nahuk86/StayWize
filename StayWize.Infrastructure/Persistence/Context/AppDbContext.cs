@@ -18,13 +18,13 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<AccessCode> AccessCodes => Set<AccessCode>();
     public DbSet<AccessLog> AccessLogs => Set<AccessLog>();
     public DbSet<PropertyHostLocal> PropertyHostLocals => Set<PropertyHostLocal>();
+    public DbSet<UserInvitation> UserInvitations => Set<UserInvitation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        // Configuración de PropertyHostLocal (tabla de asignación N:N)
         modelBuilder.Entity<PropertyHostLocal>(entity =>
         {
             entity.HasKey(e => new { e.PropertyId, e.HostLocalId });
@@ -38,6 +38,17 @@ public class AppDbContext : IdentityDbContext<AppUser>
                 .WithMany(h => h.PropertyAssignments)
                 .HasForeignKey(e => e.HostLocalId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserInvitation>(entity =>
+        {
+            entity.HasIndex(e => e.TokenHash).IsUnique();
+            entity.HasIndex(e => e.Email);
+            entity.Property(e => e.TokenHash).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.Email).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.FirstName).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.LastName).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Role).HasMaxLength(50).IsRequired();
         });
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())

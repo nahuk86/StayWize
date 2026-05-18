@@ -29,7 +29,6 @@ public class EmailService : IEmailService
                 smtp["FromEmail"] ?? "noreply@staywize.com"));
             message.To.Add(new MailboxAddress(toName, toEmail));
             message.Subject = subject;
-
             message.Body = new TextPart("html") { Text = body };
 
             var host = smtp["Host"] ?? throw new InvalidOperationException("SmtpSettings:Host no está configurado.");
@@ -37,23 +36,61 @@ public class EmailService : IEmailService
             var password = smtp["Password"] ?? throw new InvalidOperationException("SmtpSettings:Password no está configurado.");
 
             using var client = new SmtpClient();
-            await client.ConnectAsync(
-                host,
-                int.Parse(smtp["Port"] ?? "587"),
-                SecureSocketOptions.StartTls);
-
+            await client.ConnectAsync(host, int.Parse(smtp["Port"] ?? "587"), SecureSocketOptions.StartTls);
             await client.AuthenticateAsync(username, password);
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
-
 
             _logger.LogInformation("Email enviado a {Email} con asunto: {Subject}", toEmail, subject);
         }
         catch (Exception ex)
         {
-            // Fire and forget: logueamos pero no interrumpimos el flujo
             _logger.LogError(ex, "Error al enviar email a {Email}", toEmail);
         }
+    }
+
+    public async Task SendInvitationAsync(
+        string toEmail, string toName, string role,
+        string token, DateTime expiresAt)
+    {
+        // La URL base debería venir de configuración en producción
+        var link = $"https://app.staywize.com/complete-registration?token={token}";
+
+        var roleDisplay = role switch
+        {
+            "Owner" => "Propietario",
+            "HostLocal" => "Host Local",
+            "Guest" => "Huésped",
+            "Admin" => "Administrador",
+            _ => role
+        };
+
+        var subject = $"Invitación a StayWize — {roleDisplay}";
+        var body = $"""
+            <h2>¡Hola {toName}!</h2>
+            <p>Fuiste invitado a unirte a <strong>StayWize</strong> como <strong>{roleDisplay}</strong>.</p>
+            <p>Para completar tu cuenta, hacé clic en el siguiente enlace:</p>
+            <p>
+              <a href="{link}" style="
+                display: inline-block;
+                background-color: #2563eb;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 6px;
+                text-decoration: none;
+                font-weight: bold;">
+                Completar registro
+              </a>
+            </p>
+            <p style="color: #6b7280; font-size: 14px;">
+              Este enlace expira el <strong>{expiresAt:dd/MM/yyyy HH:mm}</strong> UTC.
+              Si no esperabas esta invitación, podés ignorar este mensaje.
+            </p>
+            <br/>
+            <p>El equipo de StayWize</p>
+            """;
+
+        await SendAsync(toEmail, toName, subject, body);
     }
 
     public async Task SendReservationConfirmedAsync(
