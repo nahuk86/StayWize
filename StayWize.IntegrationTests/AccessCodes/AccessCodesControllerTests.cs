@@ -1,178 +1,118 @@
-﻿using System.Net;
-using System.Net.Http.Json;
-using FluentAssertions;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
-using StayWize.Domain.Enums;
-using StayWize.IntegrationTests.Setup;
+using StayWize.Application.UseCases.AccessCodes;
+using StayWize.Application.UseCases.Reservations;
+using StayWize.Services.ExceptionHandling;
+using System.Security.Claims;
 
-namespace StayWize.IntegrationTests.AccessCodes;
+namespace StayWize.API.Controllers;
 
-public class AccessCodesControllerTests : IntegrationTestBase
+[ApiController]
+[Route("api/access-codes")]
+[Authorize]
+public class AccessCodesController : ControllerBase
 {
-    public AccessCodesControllerTests(StayWizeWebApplicationFactory factory) : base(factory) { }
+    private readonly IMediator _mediator;
+    private readonly IPropertyRepository _propertyRepository;
+    private readonly IClientRepository _clientRepository;
 
-    [Fact]
-    public async Task Generate_ConfirmedReservation_ShouldReturn201()
+    public AccessCodesController(
+        IMediator mediator,
+        IPropertyRepository propertyRepository,
+        IClientRepository clientRepository)
     {
-        await AuthenticateAsync("Admin");
+        _mediator = mediator;
+        _propertyRepository = propertyRepository;
+        _clientRepository = clientRepository;
+    }
 
-        var reservationId = await CreateConfirmedReservationIdAsync();
+    [HttpGet("reservation/{reservationId:guid}")]
+    [Authorize(Roles = "Admin,Owner,HostLocal")]
+    public async Task<IActionResult> GetByReservation(Guid reservationId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var role = User.FindFirstValue(ClaimTypes.Role);
 
-        var dto = new GenerateAccessCodeDto
+        if (role != "Admin")
         {
-            ReservationId = reservationId,
-            ValidFrom = DateTime.UtcNow.AddDays(10),
-            ValidTo = DateTime.UtcNow.AddDays(15),
-            Type = AccessCodeType.CheckIn
-        };
+            var reservation = await _mediator.Send(new GetReservationByIdQuery(reservationId));
+            if (reservation is null)
+                throw new NotFoundException("Reserva", reservationId);
 
-        var response = await Client.PostAsJsonAsync("/api/access-codes", dto);
+            var properties = role == "Owner"
+                ? await _propertyRepository.GetByOwnerIdAsync(userId!)
+                : await _propertyRepository.GetByHostLocalUserIdAsync(userId!);
 
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+            var propertyIds = properties.Select(p => p.Id);
+            if (!propertyIds.Contains(reservation.PropertyId))
+                return Forbid();
+        }
+
+        var result = await _mediator.Send(new GetAccessCodesByReservationQuery(reservationId));
+        return Ok(result);
     }
 
-    [Fact]
-    public async Task Generate_UnconfirmedReservation_ShouldReturn409()
+    /// <summary>
+    /// Devuelve los códigos de acceso de las reservas del guest autenticado.
+    /// Solo accesible por el rol Guest.
+    /// </summary>
+    [HttpGet("my-codes")]
+    [Authorize(Roles = "Guest")]
+    public async Task<IActionResult> GetMyCodes()
     {
-        await AuthenticateAsync("Admin");
+        var userEmail = User.FindFirstValue(ClaimTypes.Email);
 
-        var reservationId = await CreateUnconfirmedReservationIdAsync();
+        var client = await _clientRepository.GetByEmailAsync(userEmail!);
+        if (client is null)
+            return Ok(Enumerable.Empty<AccessCodeDto>());
 
-        var dto = new GenerateAccessCodeDto
-        {
-            ReservationId = reservationId,
-            ValidFrom = DateTime.UtcNow.AddDays(10),
-            ValidTo = DateTime.UtcNow.AddDays(15),
-            Type = AccessCodeType.CheckIn
-        };
-
-        var response = await Client.PostAsJsonAsync("/api/access-codes", dto);
-
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        var result = await _mediator.Send(new GetAccessCodesByClientQuery(client.Id));
+        return Ok(result);
     }
 
-    [Fact]
-    public async Task GetByReservation_ExistingReservation_ShouldReturn200()
+    [HttpGet("{id:guid}/logs")]
+    [Authorize(Roles = "Admin,Owner,HostLocal")]
+    public async Task<IActionResult> GetLogsByCode(Guid id)
     {
-        await AuthenticateAsync("Admin");
-
-        var reservationId = await CreateConfirmedReservationIdAsync();
-
-        var response = await Client.GetAsync($"/api/access-codes/reservation/{reservationId}");
-
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await _mediator.Send(new GetAccessLogsByCodeQuery(id));
+        return Ok(result);
     }
 
-    [Fact]
-    public async Task Validate_ValidCode_ShouldReturn200()
+    [HttpGet("reservation/{reservationId:guid}/logs")]
+    [Authorize(Roles = "Admin,Owner,HostLocal")]
+    public async Task<IActionResult> GetLogsByReservation(Guid reservationId)
     {
-        await AuthenticateAsync("Admin");
-
-        var code = await GenerateAccessCodeAsync();
-
-        var dto = new ValidateAccessCodeDto { Code = code };
-        var response = await Client.PostAsJsonAsync("/api/access-codes/validate", dto);
-
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await _mediator.Send(new GetAccessLogsByReservationQuery(reservationId));
+        return Ok(result);
     }
 
-    [Fact]
-    public async Task Validate_InvalidCode_ShouldReturn400()
+    [HttpPost]
+    [Authorize(Roles = "Admin,Owner")]
+    public async Task<IActionResult> Generate([FromBody] GenerateAccessCodeDto dto)
     {
-        await AuthenticateAsync("Admin");
-
-        var dto = new ValidateAccessCodeDto { Code = "000000" };
-        var response = await Client.PostAsJsonAsync("/api/access-codes/validate", dto);
-
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var result = await _mediator.Send(new GenerateAccessCodeCommand(dto));
+        return CreatedAtAction(nameof(GetByReservation),
+            new { reservationId = result.ReservationId }, result);
     }
 
-    [Fact]
-    public async Task Revoke_ExistingCode_ShouldReturn204()
+    [HttpPost("validate")]
+    [Authorize(Roles = "Admin,Owner,HostLocal,Guest")]
+    public async Task<IActionResult> Validate([FromBody] ValidateAccessCodeDto dto)
     {
-        await AuthenticateAsync("Admin");
-
-        var accessCodeId = await GenerateAccessCodeIdAsync();
-
-        var response = await Client.PatchAsync(
-            $"/api/access-codes/{accessCodeId}/revoke", null);
-
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        var result = await _mediator.Send(new ValidateAccessCodeCommand(dto));
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
     }
 
-    private async Task<Guid> CreateConfirmedReservationIdAsync()
+    [HttpPatch("{id:guid}/revoke")]
+    [Authorize(Roles = "Admin,Owner")]
+    public async Task<IActionResult> Revoke(Guid id)
     {
-        var reservationId = await CreateUnconfirmedReservationIdAsync();
-        await Client.PatchAsync($"/api/reservations/{reservationId}/confirm", null);
-        return reservationId;
-    }
-
-    private async Task<Guid> CreateUnconfirmedReservationIdAsync()
-    {
-        var propertyDto = new CreatePropertyDto
-        {
-            Name = "Test",
-            Address = "Test",
-            City = "BA",
-            Country = "AR",
-            MaxGuests = 4,
-            OwnerId = Guid.NewGuid(),
-            IsSelfCheckIn = true   // necesario para poder generar códigos de acceso
-        };
-        var propertyResponse = await Client.PostAsJsonAsync("/api/properties", propertyDto);
-        var property = await propertyResponse.Content.ReadFromJsonAsync<PropertyDto>();
-
-        var clientDto = new CreateClientDto
-        {
-            FirstName = "Test",
-            LastName = "Client",
-            Email = $"client-{Guid.NewGuid()}@test.com",
-            Phone = "123",
-            DocumentNumber = Guid.NewGuid().ToString("N")[..10]
-        };
-        var clientResponse = await Client.PostAsJsonAsync("/api/clients", clientDto);
-        var client = await clientResponse.Content.ReadFromJsonAsync<ClientDto>();
-
-        var reservationDto = new CreateReservationDto
-        {
-            PropertyId = property!.Id,
-            ClientId = client!.Id,
-            CheckIn = DateTime.UtcNow.AddDays(10),
-            CheckOut = DateTime.UtcNow.AddDays(15),
-            GuestCount = 2
-        };
-        var reservationResponse = await Client.PostAsJsonAsync("/api/reservations", reservationDto);
-        var reservation = await reservationResponse.Content.ReadFromJsonAsync<ReservationDto>();
-        return reservation!.Id;
-    }
-
-    private async Task<string> GenerateAccessCodeAsync()
-    {
-        var reservationId = await CreateConfirmedReservationIdAsync();
-        var dto = new GenerateAccessCodeDto
-        {
-            ReservationId = reservationId,
-            ValidFrom = DateTime.UtcNow.AddDays(-1),
-            ValidTo = DateTime.UtcNow.AddDays(15),
-            Type = AccessCodeType.CheckIn
-        };
-        var response = await Client.PostAsJsonAsync("/api/access-codes", dto);
-        var result = await response.Content.ReadFromJsonAsync<AccessCodeDto>();
-        return result!.Code;
-    }
-
-    private async Task<Guid> GenerateAccessCodeIdAsync()
-    {
-        var reservationId = await CreateConfirmedReservationIdAsync();
-        var dto = new GenerateAccessCodeDto
-        {
-            ReservationId = reservationId,
-            ValidFrom = DateTime.UtcNow.AddDays(-1),
-            ValidTo = DateTime.UtcNow.AddDays(15),
-            Type = AccessCodeType.CheckIn
-        };
-        var response = await Client.PostAsJsonAsync("/api/access-codes", dto);
-        var result = await response.Content.ReadFromJsonAsync<AccessCodeDto>();
-        return result!.Id;
+        var result = await _mediator.Send(new RevokeAccessCodeCommand(id));
+        if (!result) throw new NotFoundException("Código de acceso", id);
+        return NoContent();
     }
 }
