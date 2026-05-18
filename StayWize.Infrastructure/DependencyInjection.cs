@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +6,7 @@ using StayWize.Application.Common.Interfaces;
 using StayWize.Infrastructure.Jobs;
 using StayWize.Infrastructure.Persistence.Context;
 using StayWize.Infrastructure.Persistence.Repositories;
+using StayWize.Infrastructure.Services;
 using StayWize.Services.Authentication;
 
 namespace StayWize.Infrastructure;
@@ -38,6 +39,9 @@ public static class DependencyInjection
         services.AddScoped<IAccessCodeRepository, AccessCodeRepository>();
         services.AddScoped<IAccessLogRepository, AccessLogRepository>();
         services.AddScoped<IUserInvitationRepository, UserInvitationRepository>();
+
+        // IoT: stub reemplazable por implementación real del proveedor de cerraduras
+        services.AddScoped<ISmartLockService, StubSmartLockService>();
 
         services.AddHostedService<AccessCodeExpirationJob>();
 

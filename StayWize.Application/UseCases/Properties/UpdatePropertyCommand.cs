@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
 
@@ -30,7 +30,8 @@ public class UpdatePropertyCommandHandler
             request.Dto.City,
             request.Dto.Country,
             request.Dto.MaxGuests,
-            request.Dto.IsSelfCheckIn);
+            request.Dto.IsSelfCheckIn,
+            request.Dto.LockDeviceId);
 
         property.MarkAsUpdated("system");
         await _repository.UpdateAsync(property);

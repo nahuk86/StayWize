@@ -1,5 +1,5 @@
 ﻿namespace StayWize.Application.DTOs;
-
+ 
 public class CreatePropertyDto
 {
     public string Name { get; set; } = string.Empty;
@@ -9,4 +9,6 @@ public class CreatePropertyDto
     public int MaxGuests { get; set; }
     public Guid OwnerId { get; set; }
     public bool IsSelfCheckIn { get; set; } = false;
+    public string? LockDeviceId { get; set; }
 }
+ 
