@@ -5,6 +5,10 @@ namespace StayWize.IntegrationTests.Setup;
 
 public static class AuthHelper
 {
+    /// <summary>
+    /// Obtiene un token JWT creando un usuario via el endpoint de seed de testing.
+    /// Este endpoint solo está disponible en el entorno "Testing".
+    /// </summary>
     public static async Task<string> GetTokenAsync(
         HttpClient client,
         string role = "Admin",
@@ -21,7 +25,10 @@ public static class AuthHelper
             Role = role
         };
 
-        var response = await client.PostAsJsonAsync("/api/auth/register", registerDto);
+        // Usar el endpoint de seed que solo existe en entorno Testing
+        var response = await client.PostAsJsonAsync("/api/test/seed-user", registerDto);
+        response.EnsureSuccessStatusCode();
+
         var result = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
         return result!.Token;
     }
