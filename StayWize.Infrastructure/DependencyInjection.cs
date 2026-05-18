@@ -37,8 +37,8 @@ public static class DependencyInjection
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IAccessCodeRepository, AccessCodeRepository>();
         services.AddScoped<IAccessLogRepository, AccessLogRepository>();
+        services.AddScoped<IUserInvitationRepository, UserInvitationRepository>();
 
-        // Background job
         services.AddHostedService<AccessCodeExpirationJob>();
 
         return services;
