@@ -12,15 +12,21 @@ namespace StayWize.API.Controllers;
 
 [ApiController]
 [Route("api/access-codes")]
-[Authorize] // requiere autenticación en todos los endpoints
+[Authorize]
 public class AccessCodesController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly IPropertyRepository _propertyRepository;
-    public AccessCodesController(IMediator mediator, IPropertyRepository propertyRepository)
+    private readonly IClientRepository _clientRepository;
+
+    public AccessCodesController(
+        IMediator mediator,
+        IPropertyRepository propertyRepository,
+        IClientRepository clientRepository)
     {
         _mediator = mediator;
         _propertyRepository = propertyRepository;
+        _clientRepository = clientRepository;
     }
 
     [HttpGet("reservation/{reservationId:guid}")]
@@ -30,10 +36,8 @@ public class AccessCodesController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var role = User.FindFirstValue(ClaimTypes.Role);
 
-        // Admin ve todo
         if (role != "Admin")
         {
-            // Verificar que la reserva pertenece a una propiedad accesible
             var reservation = await _mediator.Send(new GetReservationByIdQuery(reservationId));
             if (reservation is null)
                 throw new NotFoundException("Reserva", reservationId);
@@ -48,6 +52,24 @@ public class AccessCodesController : ControllerBase
         }
 
         var result = await _mediator.Send(new GetAccessCodesByReservationQuery(reservationId));
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Devuelve los códigos de acceso de las reservas del guest autenticado.
+    /// Solo accesible por el rol Guest.
+    /// </summary>
+    [HttpGet("client/my-codes")]
+    [Authorize(Roles = "Guest")]
+    public async Task<IActionResult> GetMyCodes()
+    {
+        var userEmail = User.FindFirstValue(ClaimTypes.Email);
+
+        var client = await _clientRepository.GetByEmailAsync(userEmail!);
+        if (client is null)
+            return Ok(Enumerable.Empty<AccessCodeDto>());
+
+        var result = await _mediator.Send(new GetAccessCodesByClientQuery(client.Id));
         return Ok(result);
     }
 

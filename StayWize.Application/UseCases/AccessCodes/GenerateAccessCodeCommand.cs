@@ -1,8 +1,10 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Identity;
 using StayWize.Application.Common.Interfaces;
 using StayWize.Application.DTOs;
 using StayWize.Domain.Entities;
 using StayWize.Domain.Enums;
+using StayWize.Services.Authentication;
 using StayWize.Services.Encryption;
 using StayWize.Services.ExceptionHandling;
 using StayWize.Services.Notifications;
@@ -20,6 +22,7 @@ public class GenerateAccessCodeCommandHandler
     private readonly IClientRepository _clientRepository;
     private readonly IEncryptionService _encryptionService;
     private readonly IEmailService _emailService;
+    private readonly UserManager<AppUser> _userManager;
 
     public GenerateAccessCodeCommandHandler(
         IAccessCodeRepository accessCodeRepository,
@@ -27,7 +30,8 @@ public class GenerateAccessCodeCommandHandler
         IPropertyRepository propertyRepository,
         IClientRepository clientRepository,
         IEncryptionService encryptionService,
-        IEmailService emailService)
+        IEmailService emailService,
+        UserManager<AppUser> userManager)
     {
         _accessCodeRepository = accessCodeRepository;
         _reservationRepository = reservationRepository;
@@ -35,6 +39,7 @@ public class GenerateAccessCodeCommandHandler
         _clientRepository = clientRepository;
         _encryptionService = encryptionService;
         _emailService = emailService;
+        _userManager = userManager;
     }
 
     public async Task<AccessCodeDto> Handle(
@@ -50,7 +55,6 @@ public class GenerateAccessCodeCommandHandler
         if (reservation.Status != ReservationStatus.Confirmed)
             throw new ConflictException("Solo se pueden generar códigos para reservas confirmadas.");
 
-        // Regla de negocio: solo se generan códigos para propiedades con self check-in
         var property = await _propertyRepository.GetByIdAsync(reservation.PropertyId);
         if (property is null)
             throw new NotFoundException("Propiedad", reservation.PropertyId);
@@ -78,6 +82,18 @@ public class GenerateAccessCodeCommandHandler
             _ = _emailService.SendAccessCodeGeneratedAsync(
                 client.Email,
                 $"{client.FirstName} {client.LastName}",
+                plainCode,
+                accessCode.ValidFrom,
+                accessCode.ValidTo);
+        }
+
+        // Notificación al owner — fire and forget
+        var ownerUser = await _userManager.FindByIdAsync(property.OwnerId.ToString());
+        if (ownerUser is not null)
+        {
+            _ = _emailService.SendAccessCodeGeneratedAsync(
+                ownerUser.Email!,
+                $"{ownerUser.FirstName} {ownerUser.LastName}",
                 plainCode,
                 accessCode.ValidFrom,
                 accessCode.ValidTo);
