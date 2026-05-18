@@ -25,12 +25,29 @@ public static class AuthHelper
             Role = role
         };
 
-        // Usar el endpoint de seed que solo existe en entorno Testing
-        var response = await client.PostAsJsonAsync("/api/test/seed-user", registerDto);
-        response.EnsureSuccessStatusCode();
+        // Intentar seed; si el usuario ya existe (409), hacer login directamente
+        var seedResponse = await client.PostAsJsonAsync("/api/test/seed-user", registerDto);
 
-        var result = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
-        return result!.Token;
+        if (seedResponse.IsSuccessStatusCode)
+        {
+            var result = await seedResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
+            return result!.Token;
+        }
+
+        if ((int)seedResponse.StatusCode == 409)
+        {
+            var loginResponse = await client.PostAsJsonAsync("/api/auth/login", new LoginDto
+            {
+                Email = email,
+                Password = "Test1234"
+            });
+            loginResponse.EnsureSuccessStatusCode();
+            var loginResult = await loginResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
+            return loginResult!.Token;
+        }
+
+        seedResponse.EnsureSuccessStatusCode(); // lanza con el status real
+        return string.Empty; // unreachable
     }
 
     public static void SetBearerToken(HttpClient client, string token)

@@ -49,6 +49,7 @@ public class GetAllPropertiesQueryHandler
             Country = p.Country,
             MaxGuests = p.MaxGuests,
             IsActive = p.IsActive,
+            IsSelfCheckIn = p.IsSelfCheckIn,
             OwnerId = p.OwnerId,
             CreatedAt = p.CreatedAt,
             UpdatedAt = p.UpdatedAt
