@@ -11,15 +11,17 @@ public class AuthControllerTests : IntegrationTestBase
     public AuthControllerTests(StayWizeWebApplicationFactory factory) : base(factory) { }
 
     [Fact]
-    public async Task Register_ValidData_ShouldReturn200()
+    public async Task Register_AsAdmin_ValidData_ShouldReturn200()
     {
+        await AuthenticateAsync("Admin");
+
         var dto = new RegisterDto
         {
             FirstName = "Test",
             LastName = "User",
             Email = $"test-{Guid.NewGuid()}@test.com",
             Password = "Test1234",
-            Role = "Admin"
+            Role = "Owner"
         };
 
         var response = await Client.PostAsJsonAsync("/api/auth/register", dto);
@@ -30,8 +32,46 @@ public class AuthControllerTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task Register_DuplicateEmail_ShouldReturn409()
+    public async Task Register_WithoutAuth_ShouldReturn401()
     {
+        var dto = new RegisterDto
+        {
+            FirstName = "Test",
+            LastName = "User",
+            Email = $"test-{Guid.NewGuid()}@test.com",
+            Password = "Test1234",
+            Role = "Owner"
+        };
+
+        var response = await Client.PostAsJsonAsync("/api/auth/register", dto);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Register_AsOwner_ShouldReturn403()
+    {
+        await AuthenticateAsync("Owner");
+
+        var dto = new RegisterDto
+        {
+            FirstName = "Test",
+            LastName = "User",
+            Email = $"test-{Guid.NewGuid()}@test.com",
+            Password = "Test1234",
+            Role = "Owner"
+        };
+
+        var response = await Client.PostAsJsonAsync("/api/auth/register", dto);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task Register_AsAdmin_DuplicateEmail_ShouldReturn409()
+    {
+        await AuthenticateAsync("Admin");
+
         var email = $"duplicate-{Guid.NewGuid()}@test.com";
         var dto = new RegisterDto
         {
@@ -39,7 +79,7 @@ public class AuthControllerTests : IntegrationTestBase
             LastName = "User",
             Email = email,
             Password = "Test1234",
-            Role = "Admin"
+            Role = "Owner"
         };
 
         await Client.PostAsJsonAsync("/api/auth/register", dto);
@@ -51,17 +91,12 @@ public class AuthControllerTests : IntegrationTestBase
     [Fact]
     public async Task Login_ValidCredentials_ShouldReturn200()
     {
+        // Login sigue siendo público — no requiere auth
         var email = $"login-{Guid.NewGuid()}@test.com";
         var password = "Test1234";
 
-        await Client.PostAsJsonAsync("/api/auth/register", new RegisterDto
-        {
-            FirstName = "Test",
-            LastName = "User",
-            Email = email,
-            Password = password,
-            Role = "Admin"
-        });
+        // Creamos el usuario via seed del factory
+        await SeedUserAsync(email, password, "Owner");
 
         var response = await Client.PostAsJsonAsync("/api/auth/login", new LoginDto
         {
