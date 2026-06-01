@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.1"
+  xmlns:xmi="http://schema.omg.org/spec/XMI/2.1"
+  xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML">
+
+  <uml:Model xmi:id="MODEL_1" name="StayWize - Registro de Propietarios">
+
+    <!-- ============================================================ -->
+    <!--  PACKAGE: Domain                                             -->
+    <!-- ============================================================ -->
+    <packagedElement xmi:type="uml:Package" xmi:id="PKG_DOMAIN" name="Domain">
+
+      <!-- BaseEntity (abstract) -->
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_BaseEntity" name="BaseEntity" isAbstract="true">
+        <ownedAttribute xmi:id="ATTR_BE_Id" name="Id" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_BE_CreatedAt" name="CreatedAt" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_BE_UpdatedAt" name="UpdatedAt" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_BE_CreatedBy" name="CreatedBy" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_BE_IsDeleted" name="IsDeleted" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_BE_RowVersion" name="RowVersion" visibility="public"/>
+        <ownedOperation xmi:id="OP_BE_MarkAsUpdated" name="MarkAsUpdated" visibility="public"/>
+        <ownedOperation xmi:id="OP_BE_SoftDelete" name="SoftDelete" visibility="public"/>
+      </packagedElement>
+
+      <!-- RegistrationRequestStatus (enum) -->
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="ENUM_RegistrationRequestStatus" name="RegistrationRequestStatus">
+        <ownedLiteral xmi:id="ELITERAL_RRS_Pending" name="Pending"/>
+        <ownedLiteral xmi:id="ELITERAL_RRS_Approved" name="Approved"/>
+        <ownedLiteral xmi:id="ELITERAL_RRS_Rejected" name="Rejected"/>
+      </packagedElement>
+
+      <!-- ClientRegistrationRequest -->
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_ClientRegistrationRequest" name="ClientRegistrationRequest">
+        <ownedAttribute xmi:id="ATTR_CRR_Id" name="Id" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRR_FirstName" name="FirstName" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRR_LastName" name="LastName" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRR_Email" name="Email" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRR_DocumentNumber" name="DocumentNumber" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRR_Phone" name="Phone" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRR_Status" name="Status" visibility="public" type="ENUM_RegistrationRequestStatus"/>
+        <ownedAttribute xmi:id="ATTR_CRR_CreatedAt" name="CreatedAt" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRR_UpdatedAt" name="UpdatedAt" visibility="public"/>
+        <ownedOperation xmi:id="OP_CRR_Create" name="Create" visibility="public" isStatic="true"/>
+        <ownedOperation xmi:id="OP_CRR_Approve" name="Approve" visibility="public"/>
+        <ownedOperation xmi:id="OP_CRR_Reject" name="Reject" visibility="public"/>
+      </packagedElement>
+
+      <!-- UserInvitation -->
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_UserInvitation" name="UserInvitation">
+        <generalization xmi:id="GEN_UserInvitation_BaseEntity" general="CLS_BaseEntity"/>
+        <ownedAttribute xmi:id="ATTR_UI_Email" name="Email" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_UI_FirstName" name="FirstName" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_UI_LastName" name="LastName" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_UI_Role" name="Role" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_UI_TokenHash" name="TokenHash" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_UI_ExpiresAt" name="ExpiresAt" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_UI_UsedAt" name="UsedAt" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_UI_IsUsed" name="IsUsed" visibility="public" isDerived="true"/>
+        <ownedAttribute xmi:id="ATTR_UI_IsExpired" name="IsExpired" visibility="public" isDerived="true"/>
+        <ownedOperation xmi:id="OP_UI_Create" name="Create" visibility="public" isStatic="true"/>
+        <ownedOperation xmi:id="OP_UI_MarkAsUsed" name="MarkAsUsed" visibility="public"/>
+      </packagedElement>
+
+    </packagedElement>
+
+    <!-- ============================================================ -->
+    <!--  PACKAGE: Application.DTOs                                   -->
+    <!-- ============================================================ -->
+    <packagedElement xmi:type="uml:Package" xmi:id="PKG_DTOS" name="Application.DTOs">
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_CreateRegistrationRequestDto" name="CreateRegistrationRequestDto">
+        <ownedAttribute xmi:id="ATTR_CRRD_FirstName" name="FirstName" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRRD_LastName" name="LastName" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRRD_Email" name="Email" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRRD_DocumentNumber" name="DocumentNumber" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRRD_Phone" name="Phone" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_RegistrationRequestDto" name="RegistrationRequestDto">
+        <ownedAttribute xmi:id="ATTR_RRD_Id" name="Id" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_RRD_FirstName" name="FirstName" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_RRD_LastName" name="LastName" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_RRD_Email" name="Email" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_RRD_DocumentNumber" name="DocumentNumber" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_RRD_Phone" name="Phone" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_RRD_Status" name="Status" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_RRD_CreatedAt" name="CreatedAt" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_InviteUserDto" name="InviteUserDto">
+        <ownedAttribute xmi:id="ATTR_IUD_Email" name="Email" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_IUD_FirstName" name="FirstName" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_IUD_LastName" name="LastName" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_IUD_Role" name="Role" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_CompleteRegistrationDto" name="CompleteRegistrationDto">
+        <ownedAttribute xmi:id="ATTR_CRDto_Token" name="Token" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRDto_Password" name="Password" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_CRDto_ConfirmPassword" name="ConfirmPassword" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_InvitationResultDto" name="InvitationResultDto">
+        <ownedAttribute xmi:id="ATTR_IRD_Email" name="Email" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_IRD_Role" name="Role" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_IRD_ExpiresAt" name="ExpiresAt" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_AuthResponseDto" name="AuthResponseDto">
+        <ownedAttribute xmi:id="ATTR_ARD_Token" name="Token" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_ARD_Email" name="Email" visibility="public"/>
+        <ownedAttribute xmi:id="ATTR_ARD_Role" name="Role" visibility="public"/>
+      </packagedElement>
+
+    </packagedElement>
+
+    <!-- ============================================================ -->
+    <!--  PACKAGE: Application.Interfaces                             -->
+    <!-- ============================================================ -->
+    <packagedElement xmi:type="uml:Package" xmi:id="PKG_INTERFACES" name="Application.Interfaces">
+
+      <packagedElement xmi:type="uml:Interface" xmi:id="INTF_IClientRegistrationRequestRepository" name="IClientRegistrationRequestRepository">
+        <ownedOperation xmi:id="OP_ICRR_GetById" name="GetByIdAsync" visibility="public"/>
+        <ownedOperation xmi:id="OP_ICRR_GetPending" name="GetPendingAsync" visibility="public"/>
+        <ownedOperation xmi:id="OP_ICRR_ExistsByEmail" name="ExistsByEmailAsync" visibility="public"/>
+        <ownedOperation xmi:id="OP_ICRR_ExistsByDocument" name="ExistsByDocumentNumberAsync" visibility="public"/>
+        <ownedOperation xmi:id="OP_ICRR_Add" name="AddAsync" visibility="public"/>
+        <ownedOperation xmi:id="OP_ICRR_Update" name="UpdateAsync" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Interface" xmi:id="INTF_IUserInvitationRepository" name="IUserInvitationRepository">
+        <ownedOperation xmi:id="OP_IUIR_GetByTokenHash" name="GetByTokenHashAsync" visibility="public"/>
+        <ownedOperation xmi:id="OP_IUIR_Add" name="AddAsync" visibility="public"/>
+        <ownedOperation xmi:id="OP_IUIR_Update" name="UpdateAsync" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Interface" xmi:id="INTF_IEmailService" name="IEmailService">
+        <ownedOperation xmi:id="OP_IES_SendNewRegistration" name="SendNewRegistrationRequestAsync" visibility="public"/>
+        <ownedOperation xmi:id="OP_IES_SendInvitation" name="SendInvitationAsync" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Interface" xmi:id="INTF_IAuthService" name="IAuthService">
+        <ownedOperation xmi:id="OP_IAS_Login" name="LoginAsync" visibility="public"/>
+      </packagedElement>
+
+    </packagedElement>
+
+    <!-- ============================================================ -->
+    <!--  PACKAGE: Application.UseCases                               -->
+    <!-- ============================================================ -->
+    <packagedElement xmi:type="uml:Package" xmi:id="PKG_USECASES" name="Application.UseCases">
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_CreateRegistrationRequestCommand" name="CreateRegistrationRequestCommand">
+        <ownedAttribute xmi:id="ATTR_CRRC_Dto" name="Dto" visibility="public" type="CLS_CreateRegistrationRequestDto"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_CreateRegistrationRequestCommandHandler" name="CreateRegistrationRequestCommandHandler">
+        <ownedAttribute xmi:id="ATTR_CRRCH_Repo" name="_repository" visibility="private" type="INTF_IClientRegistrationRequestRepository"/>
+        <ownedAttribute xmi:id="ATTR_CRRCH_Email" name="_emailService" visibility="private" type="INTF_IEmailService"/>
+        <ownedOperation xmi:id="OP_CRRCH_Handle" name="Handle" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_ApproveRegistrationRequestCommand" name="ApproveRegistrationRequestCommand">
+        <ownedAttribute xmi:id="ATTR_ARRC_Id" name="Id" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_ApproveRegistrationRequestCommandHandler" name="ApproveRegistrationRequestCommandHandler">
+        <ownedAttribute xmi:id="ATTR_ARRCH_Repo" name="_repository" visibility="private" type="INTF_IClientRegistrationRequestRepository"/>
+        <ownedOperation xmi:id="OP_ARRCH_Handle" name="Handle" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_InviteUserCommand" name="InviteUserCommand">
+        <ownedAttribute xmi:id="ATTR_IUC_Dto" name="Dto" visibility="public" type="CLS_InviteUserDto"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_InviteUserCommandHandler" name="InviteUserCommandHandler">
+        <ownedAttribute xmi:id="ATTR_IUCH_Repo" name="_invitationRepository" visibility="private" type="INTF_IUserInvitationRepository"/>
+        <ownedAttribute xmi:id="ATTR_IUCH_Email" name="_emailService" visibility="private" type="INTF_IEmailService"/>
+        <ownedOperation xmi:id="OP_IUCH_Handle" name="Handle" visibility="public"/>
+        <ownedOperation xmi:id="OP_IUCH_GenerateToken" name="GenerateSecureToken" visibility="public" isStatic="true"/>
+        <ownedOperation xmi:id="OP_IUCH_HashToken" name="HashToken" visibility="public" isStatic="true"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_CompleteRegistrationCommand" name="CompleteRegistrationCommand">
+        <ownedAttribute xmi:id="ATTR_CRC_Dto" name="Dto" visibility="public" type="CLS_CompleteRegistrationDto"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_CompleteRegistrationCommandHandler" name="CompleteRegistrationCommandHandler">
+        <ownedAttribute xmi:id="ATTR_CRCH_InvRepo" name="_invitationRepository" visibility="private" type="INTF_IUserInvitationRepository"/>
+        <ownedAttribute xmi:id="ATTR_CRCH_AuthService" name="_authService" visibility="private" type="INTF_IAuthService"/>
+        <ownedOperation xmi:id="OP_CRCH_Handle" name="Handle" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_GetPendingRegistrationRequestsQuery" name="GetPendingRegistrationRequestsQuery"/>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_GetPendingRegistrationRequestsQueryHandler" name="GetPendingRegistrationRequestsQueryHandler">
+        <ownedAttribute xmi:id="ATTR_GPRRQH_Repo" name="_repository" visibility="private" type="INTF_IClientRegistrationRequestRepository"/>
+        <ownedOperation xmi:id="OP_GPRRQH_Handle" name="Handle" visibility="public"/>
+      </packagedElement>
+
+    </packagedElement>
+
+    <!-- ============================================================ -->
+    <!--  PACKAGE: API.Controllers                                    -->
+    <!-- ============================================================ -->
+    <packagedElement xmi:type="uml:Package" xmi:id="PKG_CONTROLLERS" name="API.Controllers">
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_RegistrationRequestsController" name="RegistrationRequestsController">
+        <ownedOperation xmi:id="OP_RRC_Create" name="Create [POST /api/registration-requests]" visibility="public"/>
+        <ownedOperation xmi:id="OP_RRC_GetPending" name="GetPending [GET /api/registration-requests/pending]" visibility="public"/>
+        <ownedOperation xmi:id="OP_RRC_Approve" name="Approve [POST /api/registration-requests/{id}/approve]" visibility="public"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Class" xmi:id="CLS_AuthController" name="AuthController">
+        <ownedOperation xmi:id="OP_AC_CompleteRegistration" name="CompleteRegistration [POST /api/auth/complete-registration]" visibility="public"/>
+      </packagedElement>
+
+    </packagedElement>
+
+    <!-- ============================================================ -->
+    <!--  ASSOCIATIONS                                                 -->
+    <!-- ============================================================ -->
+
+    <!-- RegistrationRequestsController --uses--> Commands -->
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_RRC_CRRC" client="CLS_RegistrationRequestsController" supplier="CLS_CreateRegistrationRequestCommand"/>
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_RRC_ARRC" client="CLS_RegistrationRequestsController" supplier="CLS_ApproveRegistrationRequestCommand"/>
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_RRC_GPRRQ" client="CLS_RegistrationRequestsController" supplier="CLS_GetPendingRegistrationRequestsQuery"/>
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_AC_CRC" client="CLS_AuthController" supplier="CLS_CompleteRegistrationCommand"/>
+
+    <!-- Handlers delegate -->
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_ARRCH_IUC" client="CLS_ApproveRegistrationRequestCommandHandler" supplier="CLS_InviteUserCommand"/>
+
+    <!-- Handler --> Interface dependencies -->
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_CRRCH_INTF" client="CLS_CreateRegistrationRequestCommandHandler" supplier="INTF_IClientRegistrationRequestRepository"/>
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_CRRCH_ES" client="CLS_CreateRegistrationRequestCommandHandler" supplier="INTF_IEmailService"/>
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_IUCH_INTF" client="CLS_InviteUserCommandHandler" supplier="INTF_IUserInvitationRepository"/>
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_IUCH_ES" client="CLS_InviteUserCommandHandler" supplier="INTF_IEmailService"/>
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_CRCH_INTF" client="CLS_CompleteRegistrationCommandHandler" supplier="INTF_IUserInvitationRepository"/>
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_CRCH_IAS" client="CLS_CompleteRegistrationCommandHandler" supplier="INTF_IAuthService"/>
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_ARRCH_INTF" client="CLS_ApproveRegistrationRequestCommandHandler" supplier="INTF_IClientRegistrationRequestRepository"/>
+    <packagedElement xmi:type="uml:Usage" xmi:id="USE_GPRRQH_INTF" client="CLS_GetPendingRegistrationRequestsQueryHandler" supplier="INTF_IClientRegistrationRequestRepository"/>
+
+  </uml:Model>
+
+</xmi:XMI>

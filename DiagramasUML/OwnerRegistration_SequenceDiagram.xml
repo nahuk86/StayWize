@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.1"
+  xmlns:xmi="http://schema.omg.org/spec/XMI/2.1"
+  xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML">
+
+  <uml:Model xmi:id="MODEL_SEQ" name="StayWize - Secuencia Registro de Propietarios">
+
+    <!--
+    =================================================================
+    FASE 1: El candidato a propietario envía solicitud de alta
+    =================================================================
+    -->
+    <packagedElement xmi:type="uml:Interaction" xmi:id="INT_Phase1" name="FASE 1 - Solicitud de Alta">
+
+      <!-- Lifelines -->
+      <lifeline xmi:id="LL_Owner"        name="Owner (candidato)"                     represents="LL_Owner"/>
+      <lifeline xmi:id="LL_RegCtrl"      name="RegistrationRequestsController"        represents="LL_RegCtrl"/>
+      <lifeline xmi:id="LL_Mediator"     name="IMediator"                             represents="LL_Mediator"/>
+      <lifeline xmi:id="LL_CRRCH"        name="CreateRegistrationRequestCommandHandler" represents="LL_CRRCH"/>
+      <lifeline xmi:id="LL_CRRRepo"      name="IClientRegistrationRequestRepository"  represents="LL_CRRRepo"/>
+      <lifeline xmi:id="LL_EmailSvc"     name="IEmailService"                         represents="LL_EmailSvc"/>
+
+      <!-- MSG 1: Owner -> Controller -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_1_send" covered="LL_Owner"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_1_recv" covered="LL_RegCtrl"/>
+      <message xmi:id="MSG_1" name="POST /api/registration-requests\n{firstName, lastName, email, documentNumber, phone}"
+        messageSort="synchCall"
+        sendEvent="MOS_1_send" receiveEvent="MOS_1_recv"/>
+
+      <!-- MSG 2: Controller -> Mediator: Send(CreateRegistrationRequestCommand) -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_2_send" covered="LL_RegCtrl"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_2_recv" covered="LL_Mediator"/>
+      <message xmi:id="MSG_2" name="Send(CreateRegistrationRequestCommand)"
+        messageSort="synchCall"
+        sendEvent="MOS_2_send" receiveEvent="MOS_2_recv"/>
+
+      <!-- MSG 3: Mediator -> Handler -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_3_send" covered="LL_Mediator"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_3_recv" covered="LL_CRRCH"/>
+      <message xmi:id="MSG_3" name="Handle(command)"
+        messageSort="synchCall"
+        sendEvent="MOS_3_send" receiveEvent="MOS_3_recv"/>
+
+      <!-- MSG 4: Handler -> Repo: ExistsByEmailAsync -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_4_send" covered="LL_CRRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_4_recv" covered="LL_CRRRepo"/>
+      <message xmi:id="MSG_4" name="ExistsByEmailAsync(email)"
+        messageSort="synchCall"
+        sendEvent="MOS_4_send" receiveEvent="MOS_4_recv"/>
+
+      <!-- MSG 4R: Repo -> Handler: false -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_4R_send" covered="LL_CRRRepo"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_4R_recv" covered="LL_CRRCH"/>
+      <message xmi:id="MSG_4R" name="false"
+        messageSort="reply"
+        sendEvent="MOS_4R_send" receiveEvent="MOS_4R_recv"/>
+
+      <!-- MSG 5: Handler -> Repo: ExistsByDocumentNumberAsync -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_5_send" covered="LL_CRRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_5_recv" covered="LL_CRRRepo"/>
+      <message xmi:id="MSG_5" name="ExistsByDocumentNumberAsync(documentNumber)"
+        messageSort="synchCall"
+        sendEvent="MOS_5_send" receiveEvent="MOS_5_recv"/>
+
+      <!-- MSG 5R: Repo -> Handler: false -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_5R_send" covered="LL_CRRRepo"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_5R_recv" covered="LL_CRRCH"/>
+      <message xmi:id="MSG_5R" name="false"
+        messageSort="reply"
+        sendEvent="MOS_5R_send" receiveEvent="MOS_5R_recv"/>
+
+      <!-- MSG 6: Handler creates domain entity (internal) -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_6_send" covered="LL_CRRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_6_recv" covered="LL_CRRCH"/>
+      <message xmi:id="MSG_6" name="ClientRegistrationRequest.Create(firstName, lastName, email, documentNumber, phone)"
+        messageSort="synchCall"
+        sendEvent="MOS_6_send" receiveEvent="MOS_6_recv"/>
+
+      <!-- MSG 7: Handler -> Repo: AddAsync -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_7_send" covered="LL_CRRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_7_recv" covered="LL_CRRRepo"/>
+      <message xmi:id="MSG_7" name="AddAsync(registrationRequest)"
+        messageSort="synchCall"
+        sendEvent="MOS_7_send" receiveEvent="MOS_7_recv"/>
+
+      <!-- MSG 7R: Repo -> Handler -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_7R_send" covered="LL_CRRRepo"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_7R_recv" covered="LL_CRRCH"/>
+      <message xmi:id="MSG_7R" name="void"
+        messageSort="reply"
+        sendEvent="MOS_7R_send" receiveEvent="MOS_7R_recv"/>
+
+      <!-- MSG 8: Handler -> EmailSvc (fire-and-forget) -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_8_send" covered="LL_CRRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_8_recv" covered="LL_EmailSvc"/>
+      <message xmi:id="MSG_8" name="SendNewRegistrationRequestAsync(firstName, lastName, email, documentNumber, phone)\n«fire and forget»"
+        messageSort="asynchCall"
+        sendEvent="MOS_8_send" receiveEvent="MOS_8_recv"/>
+
+      <!-- MSG 9: Handler -> Mediator: RegistrationRequestDto -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_9_send" covered="LL_CRRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_9_recv" covered="LL_Mediator"/>
+      <message xmi:id="MSG_9" name="RegistrationRequestDto"
+        messageSort="reply"
+        sendEvent="MOS_9_send" receiveEvent="MOS_9_recv"/>
+
+      <!-- MSG 10: Mediator -> Controller: RegistrationRequestDto -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_10_send" covered="LL_Mediator"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_10_recv" covered="LL_RegCtrl"/>
+      <message xmi:id="MSG_10" name="RegistrationRequestDto"
+        messageSort="reply"
+        sendEvent="MOS_10_send" receiveEvent="MOS_10_recv"/>
+
+      <!-- MSG 11: Controller -> Owner: 201 Created -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_11_send" covered="LL_RegCtrl"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS_11_recv" covered="LL_Owner"/>
+      <message xmi:id="MSG_11" name="201 Created\n{id, status: Pending, ...}"
+        messageSort="reply"
+        sendEvent="MOS_11_send" receiveEvent="MOS_11_recv"/>
+
+    </packagedElement>
+
+    <!--
+    =================================================================
+    FASE 2: El Admin aprueba la solicitud
+    =================================================================
+    -->
+    <packagedElement xmi:type="uml:Interaction" xmi:id="INT_Phase2" name="FASE 2 - Aprobacion por Admin">
+
+      <!-- Lifelines -->
+      <lifeline xmi:id="LL2_Admin"      name="Admin"                                       represents="LL2_Admin"/>
+      <lifeline xmi:id="LL2_RegCtrl"    name="RegistrationRequestsController"               represents="LL2_RegCtrl"/>
+      <lifeline xmi:id="LL2_Mediator"   name="IMediator"                                    represents="LL2_Mediator"/>
+      <lifeline xmi:id="LL2_ARRCH"      name="ApproveRegistrationRequestCommandHandler"     represents="LL2_ARRCH"/>
+      <lifeline xmi:id="LL2_CRRRepo"    name="IClientRegistrationRequestRepository"         represents="LL2_CRRRepo"/>
+      <lifeline xmi:id="LL2_IUCH"       name="InviteUserCommandHandler"                     represents="LL2_IUCH"/>
+      <lifeline xmi:id="LL2_InvRepo"    name="IUserInvitationRepository"                    represents="LL2_InvRepo"/>
+      <lifeline xmi:id="LL2_EmailSvc"   name="IEmailService"                                represents="LL2_EmailSvc"/>
+
+      <!-- MSG 1: Admin -> Controller: Approve -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_1_send" covered="LL2_Admin"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_1_recv" covered="LL2_RegCtrl"/>
+      <message xmi:id="MSG2_1" name="POST /api/registration-requests/{id}/approve\n[Authorize: Admin,Owner]"
+        messageSort="synchCall"
+        sendEvent="MOS2_1_send" receiveEvent="MOS2_1_recv"/>
+
+      <!-- MSG 2: Controller -> Mediator: Send(ApproveRegistrationRequestCommand) -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_2_send" covered="LL2_RegCtrl"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_2_recv" covered="LL2_Mediator"/>
+      <message xmi:id="MSG2_2" name="Send(ApproveRegistrationRequestCommand(id))"
+        messageSort="synchCall"
+        sendEvent="MOS2_2_send" receiveEvent="MOS2_2_recv"/>
+
+      <!-- MSG 3: Mediator -> Handler -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_3_send" covered="LL2_Mediator"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_3_recv" covered="LL2_ARRCH"/>
+      <message xmi:id="MSG2_3" name="Handle(command)"
+        messageSort="synchCall"
+        sendEvent="MOS2_3_send" receiveEvent="MOS2_3_recv"/>
+
+      <!-- MSG 4: Handler -> Repo: GetByIdAsync -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_4_send" covered="LL2_ARRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_4_recv" covered="LL2_CRRRepo"/>
+      <message xmi:id="MSG2_4" name="GetByIdAsync(id)"
+        messageSort="synchCall"
+        sendEvent="MOS2_4_send" receiveEvent="MOS2_4_recv"/>
+
+      <!-- MSG 4R: Repo -> Handler: ClientRegistrationRequest -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_4R_send" covered="LL2_CRRRepo"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_4R_recv" covered="LL2_ARRCH"/>
+      <message xmi:id="MSG2_4R" name="ClientRegistrationRequest [Status=Pending]"
+        messageSort="reply"
+        sendEvent="MOS2_4R_send" receiveEvent="MOS2_4R_recv"/>
+
+      <!-- MSG 5: Handler -> Mediator: Send(InviteUserCommand) -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_5_send" covered="LL2_ARRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_5_recv" covered="LL2_Mediator"/>
+      <message xmi:id="MSG2_5" name="Send(InviteUserCommand({email, firstName, lastName, Role=Owner}))"
+        messageSort="synchCall"
+        sendEvent="MOS2_5_send" receiveEvent="MOS2_5_recv"/>
+
+      <!-- MSG 6: Mediator -> InviteUserCommandHandler -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_6_send" covered="LL2_Mediator"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_6_recv" covered="LL2_IUCH"/>
+      <message xmi:id="MSG2_6" name="Handle(InviteUserCommand)"
+        messageSort="synchCall"
+        sendEvent="MOS2_6_send" receiveEvent="MOS2_6_recv"/>
+
+      <!-- MSG 7: InviteUserCommandHandler: generate token (internal) -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_7_send" covered="LL2_IUCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_7_recv" covered="LL2_IUCH"/>
+      <message xmi:id="MSG2_7" name="GenerateSecureToken() + HashToken(plainToken)"
+        messageSort="synchCall"
+        sendEvent="MOS2_7_send" receiveEvent="MOS2_7_recv"/>
+
+      <!-- MSG 8: InviteUserCommandHandler: UserInvitation.Create (internal) -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_8_send" covered="LL2_IUCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_8_recv" covered="LL2_IUCH"/>
+      <message xmi:id="MSG2_8" name="UserInvitation.Create(email, firstName, lastName, Role=Owner, tokenHash, expirationHours=48)"
+        messageSort="synchCall"
+        sendEvent="MOS2_8_send" receiveEvent="MOS2_8_recv"/>
+
+      <!-- MSG 9: InviteUserCommandHandler -> InvRepo: AddAsync -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_9_send" covered="LL2_IUCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_9_recv" covered="LL2_InvRepo"/>
+      <message xmi:id="MSG2_9" name="AddAsync(invitation)"
+        messageSort="synchCall"
+        sendEvent="MOS2_9_send" receiveEvent="MOS2_9_recv"/>
+
+      <!-- MSG 9R -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_9R_send" covered="LL2_InvRepo"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_9R_recv" covered="LL2_IUCH"/>
+      <message xmi:id="MSG2_9R" name="void"
+        messageSort="reply"
+        sendEvent="MOS2_9R_send" receiveEvent="MOS2_9R_recv"/>
+
+      <!-- MSG 10: InviteUserCommandHandler -> EmailSvc (fire-and-forget) -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_10_send" covered="LL2_IUCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_10_recv" covered="LL2_EmailSvc"/>
+      <message xmi:id="MSG2_10" name="SendInvitationAsync(email, fullName, role=Owner, plainToken, expiresAt)\n«fire and forget»"
+        messageSort="asynchCall"
+        sendEvent="MOS2_10_send" receiveEvent="MOS2_10_recv"/>
+
+      <!-- MSG 11: InviteUserCommandHandler -> Mediator: InvitationResultDto -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_11_send" covered="LL2_IUCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_11_recv" covered="LL2_Mediator"/>
+      <message xmi:id="MSG2_11" name="InvitationResultDto"
+        messageSort="reply"
+        sendEvent="MOS2_11_send" receiveEvent="MOS2_11_recv"/>
+
+      <!-- MSG 12: Handler -> Repo: registrationRequest.Approve() + UpdateAsync -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_12_send" covered="LL2_ARRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_12_recv" covered="LL2_CRRRepo"/>
+      <message xmi:id="MSG2_12" name="registrationRequest.Approve()\nUpdateAsync(registrationRequest)"
+        messageSort="synchCall"
+        sendEvent="MOS2_12_send" receiveEvent="MOS2_12_recv"/>
+
+      <!-- MSG 12R -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_12R_send" covered="LL2_CRRRepo"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_12R_recv" covered="LL2_ARRCH"/>
+      <message xmi:id="MSG2_12R" name="void"
+        messageSort="reply"
+        sendEvent="MOS2_12R_send" receiveEvent="MOS2_12R_recv"/>
+
+      <!-- MSG 13: Handler -> Mediator: InvitationResultDto -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_13_send" covered="LL2_ARRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_13_recv" covered="LL2_Mediator"/>
+      <message xmi:id="MSG2_13" name="InvitationResultDto"
+        messageSort="reply"
+        sendEvent="MOS2_13_send" receiveEvent="MOS2_13_recv"/>
+
+      <!-- MSG 14: Mediator -> Controller -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_14_send" covered="LL2_Mediator"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_14_recv" covered="LL2_RegCtrl"/>
+      <message xmi:id="MSG2_14" name="InvitationResultDto"
+        messageSort="reply"
+        sendEvent="MOS2_14_send" receiveEvent="MOS2_14_recv"/>
+
+      <!-- MSG 15: Controller -> Admin: 200 OK -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_15_send" covered="LL2_RegCtrl"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS2_15_recv" covered="LL2_Admin"/>
+      <message xmi:id="MSG2_15" name="200 OK\n{email, role: Owner, expiresAt}"
+        messageSort="reply"
+        sendEvent="MOS2_15_send" receiveEvent="MOS2_15_recv"/>
+
+    </packagedElement>
+
+    <!--
+    =================================================================
+    FASE 3: El propietario completa el registro
+    =================================================================
+    -->
+    <packagedElement xmi:type="uml:Interaction" xmi:id="INT_Phase3" name="FASE 3 - Completar Registro">
+
+      <!-- Lifelines -->
+      <lifeline xmi:id="LL3_Owner"         name="Owner (candidato)"                    represents="LL3_Owner"/>
+      <lifeline xmi:id="LL3_AuthCtrl"      name="AuthController"                       represents="LL3_AuthCtrl"/>
+      <lifeline xmi:id="LL3_Mediator"      name="IMediator"                            represents="LL3_Mediator"/>
+      <lifeline xmi:id="LL3_CRCH"          name="CompleteRegistrationCommandHandler"   represents="LL3_CRCH"/>
+      <lifeline xmi:id="LL3_InvRepo"       name="IUserInvitationRepository"            represents="LL3_InvRepo"/>
+      <lifeline xmi:id="LL3_UserManager"   name="UserManager&lt;AppUser&gt;"           represents="LL3_UserManager"/>
+      <lifeline xmi:id="LL3_RoleManager"   name="RoleManager&lt;IdentityRole&gt;"      represents="LL3_RoleManager"/>
+      <lifeline xmi:id="LL3_AuthSvc"       name="IAuthService"                         represents="LL3_AuthSvc"/>
+
+      <!-- MSG 1: Owner -> AuthController -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_1_send" covered="LL3_Owner"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_1_recv" covered="LL3_AuthCtrl"/>
+      <message xmi:id="MSG3_1" name="POST /api/auth/complete-registration\n{token, password, confirmPassword}"
+        messageSort="synchCall"
+        sendEvent="MOS3_1_send" receiveEvent="MOS3_1_recv"/>
+
+      <!-- MSG 2: Controller -> Mediator -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_2_send" covered="LL3_AuthCtrl"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_2_recv" covered="LL3_Mediator"/>
+      <message xmi:id="MSG3_2" name="Send(CompleteRegistrationCommand)"
+        messageSort="synchCall"
+        sendEvent="MOS3_2_send" receiveEvent="MOS3_2_recv"/>
+
+      <!-- MSG 3: Mediator -> Handler -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_3_send" covered="LL3_Mediator"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_3_recv" covered="LL3_CRCH"/>
+      <message xmi:id="MSG3_3" name="Handle(command)"
+        messageSort="synchCall"
+        sendEvent="MOS3_3_send" receiveEvent="MOS3_3_recv"/>
+
+      <!-- MSG 4: Validate passwords (internal) -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_4_send" covered="LL3_CRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_4_recv" covered="LL3_CRCH"/>
+      <message xmi:id="MSG3_4" name="HashToken(dto.Token)"
+        messageSort="synchCall"
+        sendEvent="MOS3_4_send" receiveEvent="MOS3_4_recv"/>
+
+      <!-- MSG 5: Handler -> InvRepo: GetByTokenHashAsync -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_5_send" covered="LL3_CRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_5_recv" covered="LL3_InvRepo"/>
+      <message xmi:id="MSG3_5" name="GetByTokenHashAsync(tokenHash)"
+        messageSort="synchCall"
+        sendEvent="MOS3_5_send" receiveEvent="MOS3_5_recv"/>
+
+      <!-- MSG 5R: InvRepo -> Handler: UserInvitation -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_5R_send" covered="LL3_InvRepo"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_5R_recv" covered="LL3_CRCH"/>
+      <message xmi:id="MSG3_5R" name="UserInvitation [IsUsed=false, IsExpired=false]"
+        messageSort="reply"
+        sendEvent="MOS3_5R_send" receiveEvent="MOS3_5R_recv"/>
+
+      <!-- MSG 6: Handler -> UserManager: FindByEmailAsync -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_6_send" covered="LL3_CRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_6_recv" covered="LL3_UserManager"/>
+      <message xmi:id="MSG3_6" name="FindByEmailAsync(invitation.Email)"
+        messageSort="synchCall"
+        sendEvent="MOS3_6_send" receiveEvent="MOS3_6_recv"/>
+
+      <!-- MSG 6R -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_6R_send" covered="LL3_UserManager"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_6R_recv" covered="LL3_CRCH"/>
+      <message xmi:id="MSG3_6R" name="null (no existe)"
+        messageSort="reply"
+        sendEvent="MOS3_6R_send" receiveEvent="MOS3_6R_recv"/>
+
+      <!-- MSG 7: Handler -> UserManager: CreateAsync -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_7_send" covered="LL3_CRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_7_recv" covered="LL3_UserManager"/>
+      <message xmi:id="MSG3_7" name="CreateAsync(AppUser, password)"
+        messageSort="synchCall"
+        sendEvent="MOS3_7_send" receiveEvent="MOS3_7_recv"/>
+
+      <!-- MSG 7R -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_7R_send" covered="LL3_UserManager"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_7R_recv" covered="LL3_CRCH"/>
+      <message xmi:id="MSG3_7R" name="IdentityResult [Succeeded=true]"
+        messageSort="reply"
+        sendEvent="MOS3_7R_send" receiveEvent="MOS3_7R_recv"/>
+
+      <!-- MSG 8: Handler -> RoleManager: AddToRoleAsync -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_8_send" covered="LL3_CRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_8_recv" covered="LL3_RoleManager"/>
+      <message xmi:id="MSG3_8" name="AddToRoleAsync(user, role=Owner)"
+        messageSort="synchCall"
+        sendEvent="MOS3_8_send" receiveEvent="MOS3_8_recv"/>
+
+      <!-- MSG 8R -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_8R_send" covered="LL3_RoleManager"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_8R_recv" covered="LL3_CRCH"/>
+      <message xmi:id="MSG3_8R" name="void"
+        messageSort="reply"
+        sendEvent="MOS3_8R_send" receiveEvent="MOS3_8R_recv"/>
+
+      <!-- MSG 9: Handler -> InvRepo: MarkAsUsed + UpdateAsync -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_9_send" covered="LL3_CRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_9_recv" covered="LL3_InvRepo"/>
+      <message xmi:id="MSG3_9" name="invitation.MarkAsUsed()\nUpdateAsync(invitation)"
+        messageSort="synchCall"
+        sendEvent="MOS3_9_send" receiveEvent="MOS3_9_recv"/>
+
+      <!-- MSG 9R -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_9R_send" covered="LL3_InvRepo"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_9R_recv" covered="LL3_CRCH"/>
+      <message xmi:id="MSG3_9R" name="void"
+        messageSort="reply"
+        sendEvent="MOS3_9R_send" receiveEvent="MOS3_9R_recv"/>
+
+      <!-- MSG 10: Handler -> AuthSvc: LoginAsync -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_10_send" covered="LL3_CRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_10_recv" covered="LL3_AuthSvc"/>
+      <message xmi:id="MSG3_10" name="LoginAsync({email, password})"
+        messageSort="synchCall"
+        sendEvent="MOS3_10_send" receiveEvent="MOS3_10_recv"/>
+
+      <!-- MSG 10R: AuthSvc -> Handler: AuthResponseDto (JWT) -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_10R_send" covered="LL3_AuthSvc"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_10R_recv" covered="LL3_CRCH"/>
+      <message xmi:id="MSG3_10R" name="AuthResponseDto {token, email, role}"
+        messageSort="reply"
+        sendEvent="MOS3_10R_send" receiveEvent="MOS3_10R_recv"/>
+
+      <!-- MSG 11: Handler -> Mediator: AuthResponseDto -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_11_send" covered="LL3_CRCH"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_11_recv" covered="LL3_Mediator"/>
+      <message xmi:id="MSG3_11" name="AuthResponseDto"
+        messageSort="reply"
+        sendEvent="MOS3_11_send" receiveEvent="MOS3_11_recv"/>
+
+      <!-- MSG 12: Mediator -> Controller -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_12_send" covered="LL3_Mediator"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_12_recv" covered="LL3_AuthCtrl"/>
+      <message xmi:id="MSG3_12" name="AuthResponseDto"
+        messageSort="reply"
+        sendEvent="MOS3_12_send" receiveEvent="MOS3_12_recv"/>
+
+      <!-- MSG 13: Controller -> Owner: 200 OK + JWT -->
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_13_send" covered="LL3_AuthCtrl"/>
+      <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="MOS3_13_recv" covered="LL3_Owner"/>
+      <message xmi:id="MSG3_13" name="200 OK\n{token: JWT, email, role: Owner}"
+        messageSort="reply"
+        sendEvent="MOS3_13_send" receiveEvent="MOS3_13_recv"/>
+
+    </packagedElement>
+
+  </uml:Model>
+
+</xmi:XMI>
