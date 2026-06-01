@@ -39,6 +39,8 @@ public static class DependencyInjection
         services.AddScoped<IAccessCodeRepository, AccessCodeRepository>();
         services.AddScoped<IAccessLogRepository, AccessLogRepository>();
         services.AddScoped<IUserInvitationRepository, UserInvitationRepository>();
+        services.AddScoped<IClientRegistrationRequestRepository, ClientRegistrationRequestRepository>();
+
 
         // IoT: stub reemplazable por implementación real del proveedor de cerraduras
         services.AddScoped<ISmartLockService, StubSmartLockService>();

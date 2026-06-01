@@ -19,6 +19,8 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<AccessLog> AccessLogs => Set<AccessLog>();
     public DbSet<PropertyHostLocal> PropertyHostLocals => Set<PropertyHostLocal>();
     public DbSet<UserInvitation> UserInvitations => Set<UserInvitation>();
+    public DbSet<ClientRegistrationRequest> ClientRegistrationRequests => Set<ClientRegistrationRequest>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

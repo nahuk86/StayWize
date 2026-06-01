@@ -10,11 +10,11 @@ export interface ClientDto {
 }
 
 export interface CreateClientDto {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
+  firstName:      string;
+  lastName:       string;
   documentNumber: string;
+  email:          string;
+  phone?:         string;  // opcional
 }
 
 export const clientService = {
