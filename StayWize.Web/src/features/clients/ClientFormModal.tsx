@@ -5,11 +5,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientService, type ClientDto } from './clientService';
 
 const clientSchema = z.object({
-  firstName: z.string().min(1, 'El nombre es requerido'),
-  lastName: z.string().min(1, 'El apellido es requerido'),
-  email: z.string().email('Email inválido'),
-  phone: z.string().min(1, 'El teléfono es requerido'),
-  documentNumber: z.string().min(1, 'El documento es requerido'),
+  firstName:      z.string().min(1, 'Requerido'),
+  lastName:       z.string().min(1, 'Requerido'),
+  documentNumber: z.string().min(6, 'Documento inválido'),
+  email:          z.string().email('Email inválido'),
+  phone:          z.string().optional(),
 });
 
 type ClientForm = z.infer<typeof clientSchema>;

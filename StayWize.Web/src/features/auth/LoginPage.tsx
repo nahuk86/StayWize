@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import apiClient from '../../api/client';
@@ -33,7 +33,7 @@ export function LoginPage() {
       const { token } = response.data;
       login(token);
       navigate('/dashboard');
-    } catch (err: any) {
+    } catch {
       setError('Credenciales inválidas. Verificá tu email y contraseña.');
     }
   };
@@ -44,11 +44,10 @@ export function LoginPage() {
         <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
           StayWize
         </h1>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               {...register('email')}
               type="email"
@@ -61,9 +60,12 @@ export function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Contraseña
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">Contraseña</label>
+              <Link to="/forgot-password" className="text-xs text-blue-600 hover:underline">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
             <input
               {...register('password')}
               type="password"
@@ -89,6 +91,15 @@ export function LoginPage() {
             {isSubmitting ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
+
+        <div className="mt-6 pt-5 border-t border-gray-100 text-center">
+          <p className="text-sm text-gray-500">
+            ¿Todavía no tenés cuenta?{' '}
+            <Link to="/register-request" className="text-blue-600 font-medium hover:underline">
+              Solicitá tu registro
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

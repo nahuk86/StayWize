@@ -20,10 +20,6 @@ public class AuthController : ControllerBase
         _mediator = mediator;
     }
 
-    /// <summary>
-    /// Registro directo con contraseña. Restringido a Admin.
-    /// Para invitar usuarios externos usar POST /api/admin/invite.
-    /// </summary>
     [HttpPost("register")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
@@ -39,14 +35,33 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Completa el registro a partir de un one-time token recibido por email.
-    /// Endpoint público — no requiere autenticación.
-    /// </summary>
     [HttpPost("complete-registration")]
     public async Task<IActionResult> CompleteRegistration([FromBody] CompleteRegistrationDto dto)
     {
         var result = await _mediator.Send(new CompleteRegistrationCommand(dto));
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Solicita un email de recuperación de contraseña.
+    /// Siempre responde 200 para evitar user enumeration.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        await _mediator.Send(new ForgotPasswordCommand(dto));
+        return Ok(new { message = "Si el email existe, recibirás un enlace para restablecer tu contraseña." });
+    }
+
+    /// <summary>
+    /// Restablece la contraseña usando el token recibido por email.
+    /// </summary>
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        await _mediator.Send(new ResetPasswordCommand(dto));
+        return Ok(new { message = "Contraseña restablecida correctamente." });
     }
 }

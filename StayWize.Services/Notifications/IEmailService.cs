@@ -8,4 +8,7 @@ public interface IEmailService
     Task SendAccessCodeGeneratedAsync(string toEmail, string toName, string code, DateTime validFrom, DateTime validTo);
     Task SendAccessCodeRevokedAsync(string toEmail, string toName, string propertyName);
     Task SendAccessCodeExpiredAsync(string toEmail, string toName, string propertyName);
+    Task SendNewRegistrationRequestAsync(string firstName, string lastName, string email, string documentNumber, string phone);
+    Task SendPasswordResetAsync(string toEmail, string toName, string encodedToken);
+
 }
